@@ -960,7 +960,7 @@
         if (selected && selected.row === row && selected.col === col) classes.push("selected");
         const legal = legalMap.get(`${row}-${col}`);
         if (legal) classes.push(legal.attack ? "legal-attack" : "legal-move");
-        if (context === "combat-board" && state.combat && piece) {
+        if (context === "combat-board" && state.combat && piece && [state.combat.attackerId, state.combat.defenderId].includes(piece.id)) {
           const isAttacker = piece.id === state.combat.attackerId;
           classes.push(isAttacker ? "combat-attacker" : "combat-defender");
           if (state.combat.outcome === "draw") classes.push("combat-draw");
