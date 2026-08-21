@@ -719,10 +719,11 @@
         return;
       }
       const revealAttacker = !attacker.revealedTo[defender.owner];
+      const revealDefender = !defender.revealedTo[attacker.owner];
       attacker.revealedTo[1] = true; attacker.revealedTo[2] = true;
       defender.revealedTo[1] = true; defender.revealedTo[2] = true;
       const outcome = defender.type === "flag" ? "capture" : attacker.type === defender.type ? "draw" : beats[attacker.type] === defender.type ? "attacker" : "defender";
-      state.combat = { attackerId: attacker.id, defenderId: defender.id, row, col, outcome, revealAttacker };
+      state.combat = { attackerId: attacker.id, defenderId: defender.id, row, col, outcome, revealAttacker, revealDefender };
       state.phase = "combat";
       state.message = `Combat: ${typeName(attacker.type)} versus ${typeName(defender.type)}.`;
       render();
@@ -892,7 +893,8 @@
       const selectedClass = state.phase === "deploy" && state.placementSelectedId === piece.id ? " placement-selected" : "";
       const ownerClass = piece.owner === 1 ? "owner-p1" : "owner-p2";
       const artwork = visibleType ? `<img class="piece-art" src="assets/${visibleType}.png" alt="">` : `<span class="piece-glyph">${glyph}</span>`;
-      const revealClass = state.combat?.revealAttacker && piece.id === state.combat.attackerId && (context === "combat-board" || context === "combat") ? " reveal-turn" : "";
+      const shouldReveal = (state.combat?.revealAttacker && piece.id === state.combat.attackerId) || (state.combat?.revealDefender && piece.id === state.combat.defenderId);
+      const revealClass = shouldReveal && (context === "combat-board" || context === "combat") ? " reveal-turn" : "";
       let combatClass = "";
       let combatStyle = "";
       let moveClass = "";
