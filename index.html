@@ -538,6 +538,7 @@
         attacker.row = row; attacker.col = col;
         addHistory(`P${attacker.owner} moved a ${typeName(attacker.type)}.`);
         endTurn();
+        render();
         return;
       }
       attacker.revealedTo[1] = true; attacker.revealedTo[2] = true;
