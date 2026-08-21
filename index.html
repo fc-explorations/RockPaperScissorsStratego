@@ -269,6 +269,9 @@
     .thinking-dots span:nth-child(2) { animation-delay: .15s; }
     .thinking-dots span:nth-child(3) { animation-delay: .3s; }
     .pass-card .winner { margin-bottom: 6px; color: #edb45a; font-size: 12px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
+    .mode-select-card .pass-icon { position: relative; width: 94px; height: 108px; border: 0; border-radius: 0; color: #f0b653; background: linear-gradient(145deg, #e9b34f, #a96c1f); clip-path: polygon(50% 0, 94% 11%, 94% 75%, 50% 100%, 6% 75%, 6% 11%); isolation: isolate; }
+    .mode-select-card .pass-icon::before { content: ""; position: absolute; z-index: -1; inset: 3px; background: linear-gradient(145deg, #29476b, #132743); clip-path: polygon(50% 0, 94% 11%, 94% 75%, 50% 100%, 6% 75%, 6% 11%); }
+    .mode-select-card .pass-icon span { position: relative; z-index: 1; font-size: 27px; letter-spacing: -.08em; }
     @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
     @keyframes pop { 0% { transform: scale(.96); opacity: .5; } 100% { transform: scale(1); opacity: 1; } }
     @keyframes reveal-left { 0% { opacity: 0; transform: translateX(-20px) scale(.72); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
@@ -960,7 +963,7 @@
     let computerCombatTimer = null;
 
     function renderOverlay() {
-      if (state.phase === "mode-select") return `<div class="overlay"><section class="pass-card"><div class="pass-icon" aria-hidden="true">RPS</div><p class="eyebrow">Choose your table</p><h2>How will you play?</h2><p>Keep the classic private handoff, or let the computer command Player 2.</p><div class="mode-actions"><button class="primary-button" data-action="choose-mode" data-mode="computer">Play vs computer</button><button class="secondary-button" data-action="choose-mode" data-mode="local">Pass &amp; play</button></div></section></div>`;
+      if (state.phase === "mode-select") return `<div class="overlay"><section class="pass-card mode-select-card"><div class="pass-icon" aria-hidden="true"><span>RPS</span></div><p class="eyebrow">Choose your table</p><h2>How will you play?</h2><p>Keep the classic private handoff, or let the computer command Player 2.</p><div class="mode-actions"><button class="primary-button" data-action="choose-mode" data-mode="computer">Play vs computer</button><button class="secondary-button" data-action="choose-mode" data-mode="local">Pass &amp; play</button></div></section></div>`;
       if (state.phase === "ai-thinking") return `<div class="overlay"><section class="pass-card"><div class="pass-icon" aria-hidden="true">AI</div><p class="eyebrow">Computer turn</p><h2>Thinking…</h2><p>Player 2 is weighing the battlefield and choosing its next move.</p><div class="thinking-dots" aria-label="Computer is thinking"><span></span><span></span><span></span></div></section></div>`;
       const overlayPhases = ["pass-p2-deploy", "pass-first-turn", "turn-pass", "gameover"];
       if (!overlayPhases.includes(state.phase)) return "";
