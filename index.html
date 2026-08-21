@@ -290,9 +290,12 @@
       .side-column.right .panel { min-height: 100%; }
     }
     @media (max-width: 700px) {
-      .topbar { padding: 15px 16px; }
+      .topbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; padding: 15px 16px; }
       .brand-mark { width: 36px; height: 36px; border-radius: 10px; }
-      .top-actions button { padding: 9px 10px; font-size: 12px; }
+      .brand { min-width: 0; }
+      h1 { overflow: hidden; text-overflow: ellipsis; }
+      .top-actions { min-width: 0; gap: 6px; }
+      .top-actions button { padding: 8px 8px; font-size: 11px; white-space: nowrap; }
       .top-actions .new-button { display: inline-flex; }
       .game-layout { display: flex; flex-direction: column; padding: 19px 14px 30px; gap: 16px; }
       .board-column { order: 1; width: 100%; }
@@ -360,6 +363,7 @@
         currentPlayer: 1,
         selectedId: null,
         placementSelectedId: null,
+        lastCombatWinnerId: null,
         extraChoice: { 1: null, 2: null },
         pieces: [],
         combat: null,
@@ -497,7 +501,13 @@
         state.message = "Choose your secret extra piece, then place all eight pieces in your home rows.";
       } else if (state.phase === "pass-first-turn" || state.phase === "turn-pass") {
         state.phase = "playing";
-        state.message = `Player ${state.currentPlayer}, choose a Rock, Paper, or Scissors piece to move.`;
+        const survivor = state.lastCombatWinnerId ? pieceById(state.lastCombatWinnerId) : null;
+        if (survivor && survivor.owner === state.currentPlayer && survivor.alive && survivor.type !== "flag") {
+          state.selectedId = survivor.id;
+          state.message = `Your surviving ${typeName(survivor.type)} is ready. Choose a highlighted square to move it.`;
+        } else {
+          state.message = `Player ${state.currentPlayer}, choose a Rock, Paper, or Scissors piece to move.`;
+        }
       }
       render();
     }
@@ -587,18 +597,21 @@
       } else if (combat.outcome === "draw") {
         attacker.alive = false; defender.alive = false;
         attacker.row = attacker.col = defender.row = defender.col = null;
+        state.lastCombatWinnerId = null;
         addHistory(`${typeName(attacker.type)} met ${typeName(defender.type)} — both removed.`);
         state.combat = null;
         endTurn();
       } else if (combat.outcome === "attacker") {
         defender.alive = false;
         attacker.row = combat.row; attacker.col = combat.col;
+        state.lastCombatWinnerId = attacker.id;
         addHistory(`P${attacker.owner}'s ${typeName(attacker.type)} defeated ${typeName(defender.type)}.`);
         state.combat = null;
         endTurn();
       } else {
         attacker.alive = false;
         attacker.row = attacker.col = null;
+        state.lastCombatWinnerId = defender.id;
         addHistory(`P${defender.owner}'s ${typeName(defender.type)} defeated ${typeName(attacker.type)}.`);
         state.combat = null;
         endTurn();
