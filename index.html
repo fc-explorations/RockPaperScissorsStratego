@@ -396,6 +396,24 @@
       scissors: { name: "Scissors", glyph: "S", short: "S" },
       flag: { name: "Flag", glyph: "⚑", short: "F" }
     };
+    const PIECE_ASSETS = {
+      rock: {
+        blue: ["rock-blue-1", "rock-blue-2", "rock-blue-3"],
+        red: ["rock-red-1", "rock-red-2", "rock-red-3"]
+      },
+      paper: {
+        blue: ["paper", "paper-2", "paper-3"],
+        red: ["paper-red-1", "paper-red-2", "paper-red-3"]
+      },
+      scissors: {
+        blue: ["scissors-blue-1", "scissors-blue-2", "scissors-blue-3"],
+        red: ["scissors", "scissors-2", "scissors-3"]
+      },
+      flag: {
+        blue: ["flag-blue-1", "flag-blue-2", "flag-blue-3"],
+        red: ["flag", "flag-2", "flag-3"]
+      }
+    };
     const beats = { rock: "scissors", scissors: "paper", paper: "rock" };
     const app = document.getElementById("app");
 
@@ -422,8 +440,9 @@
     }
 
     function pieceAsset(piece) {
-      const suffix = piece.variant && piece.variant !== 1 ? `-${piece.variant}` : "";
-      return `assets/${piece.type}${suffix}.png`;
+      const palette = piece.owner === 1 ? "blue" : "red";
+      const variant = Math.max(1, Math.min(3, piece.variant || 1));
+      return `assets/${PIECE_ASSETS[piece.type][palette][variant - 1]}.png`;
     }
 
     function initializeGame() {
