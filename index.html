@@ -418,6 +418,10 @@
       return piece && piece.owner === state.deploymentPlayer && piece.alive;
     }
 
+    function nextUnplacedPiece(owner) {
+      return piecesOf(owner).find(piece => piece.row === null && piece.col === null);
+    }
+
     function handleTrayClick(id) {
       if (state.phase !== "deploy" || !selectablePlacementPiece(id)) return;
       const piece = pieceById(id);
@@ -441,6 +445,16 @@
       const target = pieceAt(row, col);
       const selected = state.placementSelectedId ? pieceById(state.placementSelectedId) : null;
       if (!selected) {
+        if (!target) {
+          const nextPiece = nextUnplacedPiece(owner);
+          if (nextPiece) {
+            nextPiece.row = row;
+            nextPiece.col = col;
+            state.message = `${typeName(nextPiece.type)} placed. Tap another empty home square for the next piece.`;
+            render();
+          }
+          return;
+        }
         if (target && target.owner === owner) {
           state.placementSelectedId = target.id;
           state.message = `${typeName(target.type)} selected. Tap another home square to move or swap it.`;
@@ -737,7 +751,7 @@
             <section class="panel turn-card"><p class="panel-label">Now viewing</p><p class="turn-player"><span class="player-dot ${viewer === 2 ? "p2" : ""}"></span>Player ${viewer}</p><p class="turn-subtitle">${currentStatus()} · Turn ${state.turnNumber}</p></section>
             ${deployment ? `<section class="panel deploy-card"><p class="panel-label">Your army · ${deployedCount}/8 placed</p><span class="choice-label">Choose your secret extra piece</span><div class="choice-row">${MOBILE_TYPES.map(type => `<button class="choice-button ${state.extraChoice[viewer] === type ? "active" : ""}" data-choice="${type}">${typeName(type)}</button>`).join("")}</div><span class="choice-label" style="margin-top:15px">Pieces in tray</span><div class="tray">${renderTray(viewer) || `<span class="history-empty">All pieces deployed</span>`}</div><div class="deploy-actions"><button class="secondary-button" data-action="randomize">Randomize</button><button class="secondary-button" data-action="reset-deploy">Reset</button></div><button class="primary-button" data-action="confirm" style="width:100%;margin-top:8px" ${canConfirm ? "" : "disabled"}>Confirm deployment</button></section>` : `<section class="panel"><p class="panel-label">Your remaining pieces</p><div class="inventory">${remainingMarkup(viewer, viewer)}</div></section>`}
           </aside>
-          <section class="board-column" aria-label="Game board"><div class="board-heading"><div><p class="panel-label">The arena</p><h2>${deployment ? "Build your formation" : state.phase === "gameover" ? `Player ${state.winner} wins` : `Player ${state.currentPlayer}'s move`}</h2></div><p>${deployment ? "Tap a piece, then tap a home square." : selected ? `Selected: ${typeName(selected.type)}` : "Your side is at the bottom."}</p></div><div class="board-frame"><div class="board" role="grid" aria-label="4 by 6 Rock Paper Scissors Stratego board">${renderBoard(viewer, state.phase === "combat" ? "combat-board" : "board")}</div></div><div class="panel" style="margin-top:14px"><div class="message-box"><strong>${deployment ? "Deployment briefing" : state.phase === "playing" ? "Your move" : "Game status"}</strong>${state.message}</div></div></section>
+          <section class="board-column" aria-label="Game board"><div class="board-heading"><div><p class="panel-label">The arena</p><h2>${deployment ? "Build your formation" : state.phase === "gameover" ? `Player ${state.winner} wins` : `Player ${state.currentPlayer}'s move`}</h2></div><p>${deployment ? "Tap an empty home square to place the next piece." : selected ? `Selected: ${typeName(selected.type)}` : "Your side is at the bottom."}</p></div><div class="board-frame"><div class="board" role="grid" aria-label="4 by 6 Rock Paper Scissors Stratego board">${renderBoard(viewer, state.phase === "combat" ? "combat-board" : "board")}</div></div><div class="panel" style="margin-top:14px"><div class="message-box"><strong>${deployment ? "Deployment briefing" : state.phase === "playing" ? "Your move" : "Game status"}</strong>${state.message}</div></div></section>
           <aside class="side-column right"><section class="panel"><p class="panel-label">Battlefield</p><div class="stat-line"><span>Player 1 pieces</span><strong>${alivePiecesOf(1).length}</strong></div><div class="stat-line"><span>Player 2 pieces</span><strong>${alivePiecesOf(2).length}</strong></div><div class="stat-line"><span>Moves played</span><strong>${Math.max(0, state.turnNumber - 1)}</strong></div></section><section class="panel"><p class="panel-label">Player 1 · remaining</p><div class="inventory">${remainingMarkup(1, viewer)}</div></section><section class="panel"><p class="panel-label">Player 2 · remaining</p><div class="inventory">${remainingMarkup(2, viewer)}</div></section><section class="panel"><p class="panel-label">Board key</p><div class="legend"><div class="legend-row"><span class="legend-swatch move"></span>Move</div><div class="legend-row"><span class="legend-swatch attack"></span>Attack</div><div class="legend-row"><span class="legend-swatch hidden"></span>Hidden enemy</div><div class="legend-row"><span class="legend-swatch known"></span>Known enemy</div></div></section><section class="panel history"><p class="panel-label">Battle log</p>${state.history.length ? `<ol class="history-list">${state.history.map((item, index) => `<li><span class="history-number">${state.history.length - index}</span><span>${item}</span></li>`).join("")}</ol>` : `<span class="history-empty">No moves yet. The quiet before the storm.</span>`}</section><p class="bottom-note">Keep the screen covered during every handoff.<br>Good tactics start with good secrets.</p></aside>
         </main>
         ${renderOverlay()}
