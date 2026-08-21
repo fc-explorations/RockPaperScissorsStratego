@@ -406,11 +406,24 @@
         id: `p${owner}-${index}`,
         owner,
         type,
+        variant: variantForPiece(owner, type, index),
         row: null,
         col: null,
         alive: true,
         revealedTo: { 1: false, 2: false }
       };
+    }
+
+    function variantForPiece(owner, type, index) {
+      if (type === null || index === 8) return owner === 1 ? 3 : 1;
+      const ordinal = type === "rock" ? index - 1 : type === "paper" ? index - 3 : type === "scissors" ? index - 5 : 0;
+      const startingVariant = owner === 1 ? 1 : 2;
+      return ((startingVariant + ordinal - 1) % 3) + 1;
+    }
+
+    function pieceAsset(piece) {
+      const suffix = piece.variant && piece.variant !== 1 ? `-${piece.variant}` : "";
+      return `assets/${piece.type}${suffix}.png`;
     }
 
     function initializeGame() {
@@ -444,6 +457,9 @@
         const types = ["rock", "rock", "paper", "paper", "scissors", "scissors", "flag", null];
         types.forEach((type, index) => state.pieces.push(createPiece(owner, index + 1, type)));
       });
+      const flagVariants = [1, 2, 3].sort(() => Math.random() - 0.5);
+      piecesOf(1).find(piece => piece.type === "flag").variant = flagVariants[0];
+      piecesOf(2).find(piece => piece.type === "flag").variant = flagVariants[1];
       render();
     }
 
@@ -470,7 +486,10 @@
       const player = state.deploymentPlayer;
       state.extraChoice[player] = type;
       const extra = piecesOf(player).find(piece => piece.type === null);
-      if (extra) extra.type = type;
+      if (extra) {
+        extra.type = type;
+        extra.variant = variantForPiece(player, type, 8);
+      }
       state.message = `${typeName(type)} selected as your secret eighth piece. Now arrange your army.`;
       render();
     }
@@ -590,7 +609,10 @@
       const extraType = MOBILE_TYPES[Math.floor(Math.random() * MOBILE_TYPES.length)];
       state.extraChoice[owner] = extraType;
       const extra = piecesOf(owner).find(piece => piece.type === null);
-      if (extra) extra.type = extraType;
+      if (extra) {
+        extra.type = extraType;
+        extra.variant = variantForPiece(owner, extraType, 8);
+      }
 
       const flag = piecesOf(owner).find(piece => piece.type === "flag");
       const backRow = ownRows(owner)[0];
@@ -893,7 +915,7 @@
       const knownClass = (!isOwn && isKnown) || knownToComputer ? " known" : "";
       const selectedClass = state.phase === "deploy" && state.placementSelectedId === piece.id ? " placement-selected" : "";
       const ownerClass = piece.owner === 1 ? "owner-p1" : "owner-p2";
-      const artwork = visibleType ? `<img class="piece-art" src="assets/${visibleType}.png" alt="">` : `<span class="piece-glyph">${glyph}</span>`;
+      const artwork = visibleType ? `<img class="piece-art" src="${pieceAsset(piece)}" alt="">` : `<span class="piece-glyph">${glyph}</span>`;
       const shouldReveal = (state.combat?.revealAttacker && piece.id === state.combat.attackerId) || (state.combat?.revealDefender && piece.id === state.combat.defenderId);
       const revealClass = shouldReveal && (context === "combat-board" || context === "combat") ? " reveal-turn" : "";
       let combatClass = "";
