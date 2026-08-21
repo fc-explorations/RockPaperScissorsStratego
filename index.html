@@ -302,6 +302,8 @@
     .combat-result span { color: #a9b8cb; font-weight: 500; }
     .board.combat-board { box-shadow: inset 0 0 0 4px rgba(232,177,93,.45); }
     .cell.combat-attacker, .cell.combat-defender { z-index: 2; box-shadow: inset 0 0 0 4px rgba(232,177,93,.9), 0 0 22px rgba(232,177,93,.34); animation: combat-cell-pulse .72s ease-in-out infinite alternate; }
+    .board.combat-board .cell.combat-attacker.combat-winner, .board.combat-board .cell.combat-draw { z-index: 30; }
+    .board.combat-board .cell.combat-attacker .piece, .board.combat-board .cell.combat-defender .piece { width: 100%; max-width: none; height: 100%; }
     .cell.combat-attacker .piece, .cell.combat-defender .piece { z-index: 4; animation: board-combat-reveal .45s cubic-bezier(.2,.8,.3,1) both; }
     .cell.combat-winner .piece { animation: board-combat-winner 1.3s .35s cubic-bezier(.2,.8,.3,1) both; }
     .cell.combat-loser .piece { animation: board-combat-loser 1.15s .35s ease-in both; }
