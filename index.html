@@ -190,9 +190,14 @@
       background: repeating-linear-gradient(135deg, #435770 0, #435770 5px, #526780 5px, #526780 10px);
       box-shadow: 0 4px 9px rgba(20,35,53,.13), inset 0 1px rgba(255,255,255,.18);
     }
+    .piece.hidden.owner-p1 { background: repeating-linear-gradient(135deg, #385e88 0, #385e88 5px, #4d739b 5px, #4d739b 10px); }
+    .piece.hidden.owner-p2 { background: repeating-linear-gradient(135deg, #8a4f4c 0, #8a4f4c 5px, #a8665e 5px, #a8665e 10px); }
     .piece.hidden .piece-glyph { font-size: clamp(22px, 4vw, 34px); }
     .piece.known .piece-art { filter: drop-shadow(0 5px 4px rgba(20,35,53,.23)) drop-shadow(0 0 2px rgba(216,157,53,.75)); }
     .piece.known::after { content: "KNOWN"; position: absolute; bottom: -8px; right: -7px; padding: 2px 4px; border-radius: 4px; color: #98681e; background: #ffe8ae; font-size: 6px; letter-spacing: .06em; }
+    .owner-marker { position: absolute; z-index: 3; right: -5px; bottom: -3px; min-width: 24px; height: 18px; padding: 0 4px; display: grid; place-items: center; border: 2px solid var(--paper); border-radius: 6px; color: white; font-size: 8px; font-weight: 900; letter-spacing: .02em; line-height: 1; box-shadow: 0 2px 5px rgba(20,35,53,.22); }
+    .owner-p1 .owner-marker { background: var(--blue); }
+    .owner-p2 .owner-marker { background: var(--coral); }
     .piece.placement-selected { transform: translateY(-5px) rotate(-2deg); box-shadow: 0 9px 14px rgba(20,35,53,.2), 0 0 0 3px #e6b258; }
     .cell:hover .piece { transform: translateY(-2px); }
     .tray { display: flex; flex-wrap: wrap; gap: 9px; }
@@ -643,8 +648,9 @@
       const label = visibleType ? TYPE_META[visibleType].short : "?";
       const knownClass = !isOwn && isKnown ? " known" : "";
       const selectedClass = state.phase === "deploy" && state.placementSelectedId === piece.id ? " placement-selected" : "";
+      const ownerClass = piece.owner === 1 ? "owner-p1" : "owner-p2";
       const artwork = visibleType ? `<img class="piece-art" src="assets/${visibleType}.png" alt="">` : `<span class="piece-glyph">${glyph}</span>`;
-      return `<div class="piece ${typeClass}${knownClass}${selectedClass}" aria-label="${hidden ? "Hidden enemy piece" : `${typeName(piece.type)} belonging to Player ${piece.owner}`}" title="${hidden ? "Hidden enemy piece" : typeName(piece.type)}">${artwork}<span class="piece-label">${label}</span></div>`;
+      return `<div class="piece ${typeClass} ${ownerClass}${knownClass}${selectedClass}" aria-label="${hidden ? `Hidden Player ${piece.owner} piece` : `${typeName(piece.type)} belonging to Player ${piece.owner}`}" title="${hidden ? `Hidden Player ${piece.owner} piece` : typeName(piece.type)}">${artwork}<span class="piece-label">${label}</span><span class="owner-marker" aria-hidden="true">P${piece.owner}</span></div>`;
     }
 
     function displayCoordinates(viewer) {
