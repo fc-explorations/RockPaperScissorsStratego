@@ -285,6 +285,8 @@
     @keyframes board-combat-winner { 0% { left: 0; top: 0; } 100% { left: calc(var(--combat-x, 0) * 100%); top: calc(var(--combat-y, 0) * 100%); } }
     @keyframes combat-loser-vanish { 0% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes piece-arrival { from { left: calc(var(--move-x, 0) * 100%); top: calc(var(--move-y, 0) * 100%); } to { left: 0; top: 0; } }
+    @keyframes reveal-card-turn { 0%, 38% { opacity: 1; transform: scaleY(1); } 52% { opacity: 1; transform: scaleY(.035); } 64%, 100% { opacity: 0; transform: scaleY(0); } }
+    @keyframes reveal-art-turn { 0%, 44% { opacity: 0; transform: scaleY(0); } 56% { opacity: 1; transform: scaleY(.035); } 100% { opacity: 1; transform: scaleY(1); } }
     @keyframes thinking { 0%, 80%, 100% { opacity: .35; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-5px); } }
     .combat-overlay { background: rgba(16,27,45,.48); }
     .combat-card { width: min(560px, 100%); padding: 28px; background: rgba(26,43,69,.97); }
@@ -311,6 +313,10 @@
     .cell.combat-attacker.combat-winner .piece { animation: board-combat-winner 1.25s .55s cubic-bezier(.2,.8,.3,1) both; }
     .cell.combat-loser .piece { animation: combat-loser-vanish .65s 1s ease-in both; }
     .piece.move-arrival { animation: piece-arrival .55s cubic-bezier(.2,.8,.3,1) both; }
+    .piece.reveal-turn::before { content: "?"; position: absolute; z-index: 4; inset: 12.5%; display: grid; place-items: center; border: 2px solid #8999ad; border-radius: 11px; color: white; background: repeating-linear-gradient(135deg, #435770 0, #435770 5px, #526780 5px, #526780 10px); box-shadow: 0 4px 9px rgba(20,35,53,.13), inset 0 1px rgba(255,255,255,.18); font-size: clamp(24px, 4vw, 34px); line-height: 1; animation: reveal-card-turn .58s ease-in-out both; }
+    .piece.reveal-turn.owner-p1::before { background: repeating-linear-gradient(135deg, #385e88 0, #385e88 5px, #4d739b 5px, #4d739b 10px); }
+    .piece.reveal-turn.owner-p2::before { background: repeating-linear-gradient(135deg, #8a4f4c 0, #8a4f4c 5px, #a8665e 5px, #a8665e 10px); }
+    .piece.reveal-turn .piece-art { transform-origin: center; animation: reveal-art-turn .58s ease-in-out both; }
     .battle-burst { position: absolute; z-index: 6; left: 50%; top: 50%; width: 120%; height: 120%; pointer-events: none; transform: translate(-50%, -50%); animation: burst-fade 1.2s .05s ease-out both; }
     .battle-burst-overlay { z-index: 50; left: var(--burst-board-x); top: var(--burst-board-y); width: 30%; height: 22%; }
     .battle-burst-modal { width: 42%; height: 100%; }
@@ -712,10 +718,11 @@
         render();
         return;
       }
+      const revealAttacker = !attacker.revealedTo[defender.owner];
       attacker.revealedTo[1] = true; attacker.revealedTo[2] = true;
       defender.revealedTo[1] = true; defender.revealedTo[2] = true;
       const outcome = defender.type === "flag" ? "capture" : attacker.type === defender.type ? "draw" : beats[attacker.type] === defender.type ? "attacker" : "defender";
-      state.combat = { attackerId: attacker.id, defenderId: defender.id, row, col, outcome };
+      state.combat = { attackerId: attacker.id, defenderId: defender.id, row, col, outcome, revealAttacker };
       state.phase = "combat";
       state.message = `Combat: ${typeName(attacker.type)} versus ${typeName(defender.type)}.`;
       render();
@@ -885,6 +892,7 @@
       const selectedClass = state.phase === "deploy" && state.placementSelectedId === piece.id ? " placement-selected" : "";
       const ownerClass = piece.owner === 1 ? "owner-p1" : "owner-p2";
       const artwork = visibleType ? `<img class="piece-art" src="assets/${visibleType}.png" alt="">` : `<span class="piece-glyph">${glyph}</span>`;
+      const revealClass = state.combat?.revealAttacker && piece.id === state.combat.attackerId && (context === "combat-board" || context === "combat") ? " reveal-turn" : "";
       let combatClass = "";
       let combatStyle = "";
       let moveClass = "";
@@ -906,7 +914,7 @@
         }
       }
       const pieceStyle = combatStyle || moveStyle;
-      return `<div class="piece ${typeClass} ${ownerClass}${knownClass}${selectedClass}${combatClass}${moveClass}"${pieceStyle} aria-label="${hidden ? `Hidden Player ${piece.owner} piece` : `${typeName(piece.type)} belonging to Player ${piece.owner}`}" title="${hidden ? `Hidden Player ${piece.owner} piece` : typeName(piece.type)}">${artwork}<span class="piece-label">${label}</span><span class="owner-marker" aria-hidden="true">P${piece.owner}</span></div>`;
+      return `<div class="piece ${typeClass} ${ownerClass}${knownClass}${selectedClass}${combatClass}${moveClass}${revealClass}"${pieceStyle} aria-label="${hidden ? `Hidden Player ${piece.owner} piece` : `${typeName(piece.type)} belonging to Player ${piece.owner}`}" title="${hidden ? `Hidden Player ${piece.owner} piece` : typeName(piece.type)}">${artwork}<span class="piece-label">${label}</span><span class="owner-marker" aria-hidden="true">P${piece.owner}</span></div>`;
     }
 
     function displayCoordinates(viewer) {
