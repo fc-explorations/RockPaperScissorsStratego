@@ -837,7 +837,7 @@
       const isOwn = piece.owner === viewer;
       const isKnown = piece.revealedTo[viewer];
       const isCombatPair = context === "combat-board" && state.combat && [state.combat.attackerId, state.combat.defenderId].includes(piece.id);
-      const hidden = context === "combat-board" ? !isCombatPair : context !== "deployment" && !isOwn && !isKnown;
+      const hidden = context === "combat-board" ? !isCombatPair && !(state.gameMode === "computer" && isOwn) : context !== "deployment" && !isOwn && !isKnown;
       const visibleType = hidden ? null : piece.type;
       const typeClass = visibleType || "hidden";
       const glyph = visibleType ? TYPE_META[visibleType].glyph : "?";
@@ -900,7 +900,7 @@
     }
 
     function hiddenPieceLabel(piece, viewer, context = "board") {
-      if (context === "combat-board" && ![state.combat?.attackerId, state.combat?.defenderId].includes(piece.id)) return "Hidden piece";
+      if (context === "combat-board" && ![state.combat?.attackerId, state.combat?.defenderId].includes(piece.id) && !(state.gameMode === "computer" && piece.owner === viewer)) return "Hidden piece";
       if (piece.owner === viewer || piece.revealedTo[viewer]) return `Player ${piece.owner}'s ${typeName(piece.type)}`;
       return `Hidden Player ${piece.owner} piece`;
     }
