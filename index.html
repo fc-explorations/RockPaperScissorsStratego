@@ -826,7 +826,7 @@
       state.selectedId = null;
       if (state.gameMode === "computer" && state.currentPlayer === state.aiPlayer) {
         state.phase = "ai-thinking";
-        state.message = "The computer is thinking…";
+        state.message = "Player 2's move.";
         render();
         setTimeout(runComputerTurn, 850);
         return;
@@ -971,7 +971,7 @@
 
     function renderOverlay() {
       if (state.phase === "mode-select") return `<div class="overlay"><section class="pass-card mode-select-card"><div class="pass-icon" aria-hidden="true"><span>RPS</span></div><p class="eyebrow">Choose your table</p><h2>How will you play?</h2><p>Keep the classic private handoff, or let the computer command Player 2.</p><div class="mode-actions"><button class="primary-button" data-action="choose-mode" data-mode="computer">Play vs computer</button><button class="secondary-button" data-action="choose-mode" data-mode="local">Pass &amp; play</button></div></section></div>`;
-      if (state.phase === "ai-thinking") return `<div class="overlay"><section class="pass-card"><div class="pass-icon" aria-hidden="true">AI</div><p class="eyebrow">Computer turn</p><h2>Thinking…</h2><p>Player 2 is weighing the battlefield and choosing its next move.</p><div class="thinking-dots" aria-label="Computer is thinking"><span></span><span></span><span></span></div></section></div>`;
+      if (state.phase === "ai-thinking") return "";
       const overlayPhases = ["pass-p2-deploy", "pass-first-turn", "turn-pass", "gameover"];
       if (!overlayPhases.includes(state.phase)) return "";
       if (state.phase === "gameover") return `<div class="overlay"><section class="pass-card"><div class="pass-icon">⚑</div><p class="winner">${state.winner === 0 ? "Stalemate" : "Victory"}</p><h2>${state.winner === 0 ? "Draw" : `Player ${state.winner} Wins`}</h2><p>${state.winner === 0 ? "Both armies were reduced to their Flags." : state.message || "The opposing army has fallen."}</p><button class="primary-button" data-action="new">Play again</button></section></div>`;
