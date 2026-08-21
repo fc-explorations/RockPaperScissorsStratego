@@ -695,23 +695,42 @@
         state.lastCombatWinnerId = null;
         addHistory(`${typeName(attacker.type)} met ${typeName(defender.type)} — both removed.`);
         state.combat = null;
-        endTurn();
+        if (!checkArmyVictory()) endTurn();
       } else if (combat.outcome === "attacker") {
         defender.alive = false;
         attacker.row = combat.row; attacker.col = combat.col;
         state.lastCombatWinnerId = attacker.id;
         addHistory(`P${attacker.owner}'s ${typeName(attacker.type)} defeated ${typeName(defender.type)}.`);
         state.combat = null;
-        endTurn();
+        if (!checkArmyVictory()) endTurn();
       } else {
         attacker.alive = false;
         attacker.row = attacker.col = null;
         state.lastCombatWinnerId = defender.id;
         addHistory(`P${defender.owner}'s ${typeName(defender.type)} defeated ${typeName(attacker.type)}.`);
         state.combat = null;
-        endTurn();
+        if (!checkArmyVictory()) endTurn();
       }
       render();
+    }
+
+    function checkArmyVictory() {
+      const playerOnePieces = alivePiecesOf(1);
+      const playerTwoPieces = alivePiecesOf(2);
+      const playerOneOnlyFlag = playerOnePieces.length === 1 && playerOnePieces[0].type === "flag";
+      const playerTwoOnlyFlag = playerTwoPieces.length === 1 && playerTwoPieces[0].type === "flag";
+      if (!playerOneOnlyFlag && !playerTwoOnlyFlag) return false;
+      if (playerOneOnlyFlag && playerTwoOnlyFlag) {
+        state.winner = 0;
+        state.message = "Both armies have been reduced to their Flags.";
+        addHistory("Both players were left with only a Flag — draw.");
+      } else {
+        state.winner = playerOneOnlyFlag ? 2 : 1;
+        state.message = `Player ${state.winner} wins because the opposing army has only its Flag left.`;
+        addHistory(`Player ${state.winner} wins by army elimination.`);
+      }
+      state.phase = "gameover";
+      return true;
     }
 
     function computerMoveScore(move) {
@@ -887,7 +906,7 @@
       if (state.phase === "ai-thinking") return `<div class="overlay"><section class="pass-card"><div class="pass-icon" aria-hidden="true">AI</div><p class="eyebrow">Computer turn</p><h2>Thinking…</h2><p>Player 2 is weighing the battlefield and choosing its next move.</p><div class="thinking-dots" aria-label="Computer is thinking"><span></span><span></span><span></span></div></section></div>`;
       const overlayPhases = ["pass-p2-deploy", "pass-first-turn", "turn-pass", "gameover"];
       if (!overlayPhases.includes(state.phase)) return "";
-      if (state.phase === "gameover") return `<div class="overlay"><section class="pass-card"><div class="pass-icon">⚑</div><p class="winner">Victory</p><h2>Player ${state.winner} Wins</h2><p>The Flag has fallen. A sharp read and a sharper move decided the match.</p><button class="primary-button" data-action="new">Play again</button></section></div>`;
+      if (state.phase === "gameover") return `<div class="overlay"><section class="pass-card"><div class="pass-icon">⚑</div><p class="winner">${state.winner === 0 ? "Stalemate" : "Victory"}</p><h2>${state.winner === 0 ? "Draw" : `Player ${state.winner} Wins`}</h2><p>${state.winner === 0 ? "Both armies were reduced to their Flags." : state.message || "The opposing army has fallen."}</p><button class="primary-button" data-action="new">Play again</button></section></div>`;
       const nextPlayer = state.phase === "pass-p2-deploy" ? 2 : state.currentPlayer;
       const isDeployment = state.phase === "pass-p2-deploy";
       const computerReady = state.phase === "pass-first-turn" && state.gameMode === "computer";
@@ -920,7 +939,7 @@
     }
 
     function renderRulesModal() {
-      return `<div class="modal-backdrop" data-action="close-rules"><section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" onclick="event.stopPropagation()"><div class="modal-heading"><div><p class="panel-label">How to play</p><h2 id="rules-title">Rules of the arena</h2></div><button class="close-button" data-action="close-rules" aria-label="Close rules">×</button></div><h3>Goal</h3><p>Capture the opponent's Flag. Player 1 moves first.</p><h3>Army</h3><ul><li>2 Rock, 2 Paper, 2 Scissors, and 1 Flag.</li><li>1 secret extra Rock, Paper, or Scissors.</li></ul><h3>Movement</h3><p>Move one Rock, Paper, or Scissors one square orthogonally. Pieces cannot move diagonally, jump, or land on a friendly piece. The Flag cannot move.</p><h3>Combat</h3><ul><li>Rock beats Scissors.</li><li>Scissors beats Paper.</li><li>Paper beats Rock.</li><li>Matching pieces remove each other.</li><li>Any mobile piece captures the Flag immediately.</li></ul><h3>Hidden information</h3><p>Enemy pieces are hidden until combat reveals them. A revealed enemy that survives stays known for the rest of the game. Keep the screen covered during each pass-device handoff.</p></section></div>`;
+      return `<div class="modal-backdrop" data-action="close-rules"><section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" onclick="event.stopPropagation()"><div class="modal-heading"><div><p class="panel-label">How to play</p><h2 id="rules-title">Rules of the arena</h2></div><button class="close-button" data-action="close-rules" aria-label="Close rules">×</button></div><h3>Goal</h3><p>Capture the opponent's Flag. Player 1 moves first.</p><h3>Army</h3><ul><li>2 Rock, 2 Paper, 2 Scissors, and 1 Flag.</li><li>1 secret extra Rock, Paper, or Scissors.</li></ul><h3>Movement</h3><p>Move one Rock, Paper, or Scissors one square orthogonally. Pieces cannot move diagonally, jump, or land on a friendly piece. The Flag cannot move.</p><h3>Combat</h3><ul><li>Rock beats Scissors.</li><li>Scissors beats Paper.</li><li>Paper beats Rock.</li><li>Matching pieces remove each other.</li><li>Any mobile piece captures the Flag immediately.</li><li>An army reduced to only its Flag loses immediately.</li></ul><h3>Hidden information</h3><p>Enemy pieces are hidden until combat reveals them. A revealed enemy that survives stays known for the rest of the game. Keep the screen covered during each pass-device handoff.</p></section></div>`;
     }
 
     function bindEvents() {

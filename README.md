@@ -29,6 +29,7 @@ No build step or dependencies are required.
    - Paper defeats Rock.
    - Matching pieces eliminate each other.
    - Any mobile piece captures the Flag.
+   - A player with only their Flag remaining loses immediately.
 6. Capture the opposing Flag to win.
 
 Enemy pieces remain hidden until combat reveals them. A revealed enemy that survives remains known for the rest of the game.
