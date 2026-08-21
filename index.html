@@ -159,48 +159,53 @@
     .cell.selected::before { content: "SELECTED"; position: absolute; top: 5px; left: 7px; color: var(--blue); font-size: 7px; font-weight: 900; letter-spacing: .1em; }
     .piece {
       position: relative;
-      width: min(72%, 80px);
-      aspect-ratio: .77;
+      width: min(90%, 96px);
+      aspect-ratio: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 3px;
-      border: 2px solid color-mix(in srgb, var(--piece-color) 35%, white);
-      border-radius: 11px;
+      border: 0;
+      border-radius: 0;
       color: var(--piece-color);
-      background: var(--piece-light);
-      box-shadow: 0 4px 9px rgba(20,35,53,.13), inset 0 1px rgba(255,255,255,.8);
+      background: transparent;
+      box-shadow: none;
       font-weight: 900;
       transform: translateY(0);
       transition: transform .18s, box-shadow .18s;
       pointer-events: none;
     }
-    .piece::before { content: ""; position: absolute; inset: 4px; border: 1px solid color-mix(in srgb, var(--piece-color) 18%, transparent); border-radius: 7px; }
+    .piece::before { display: none; }
     .piece-glyph { position: relative; font-size: clamp(20px, 4vw, 34px); line-height: .85; letter-spacing: -.1em; }
-    .piece-art { position: relative; z-index: 1; width: 82%; height: 72%; object-fit: contain; filter: drop-shadow(0 3px 3px rgba(20,35,53,.2)); }
+    .piece-art { position: relative; z-index: 1; width: 96%; height: 90%; object-fit: contain; filter: drop-shadow(0 5px 4px rgba(20,35,53,.23)); }
     .piece-label { position: relative; font-size: clamp(8px, 1vw, 10px); letter-spacing: .12em; }
+    .piece:not(.hidden) .piece-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     .piece.hidden {
       --piece-color: #aeb7bf; --piece-light: #52637a;
-      border-color: #8999ad; color: white;
+      width: min(75%, 76px);
+      border: 2px solid #8999ad;
+      border-radius: 11px;
+      color: white;
       background: repeating-linear-gradient(135deg, #435770 0, #435770 5px, #526780 5px, #526780 10px);
+      box-shadow: 0 4px 9px rgba(20,35,53,.13), inset 0 1px rgba(255,255,255,.18);
     }
     .piece.hidden .piece-glyph { font-size: clamp(22px, 4vw, 34px); }
-    .piece.known { box-shadow: 0 4px 9px rgba(20,35,53,.13), 0 0 0 2px rgba(216,157,53,.4); }
+    .piece.known .piece-art { filter: drop-shadow(0 5px 4px rgba(20,35,53,.23)) drop-shadow(0 0 2px rgba(216,157,53,.75)); }
     .piece.known::after { content: "KNOWN"; position: absolute; bottom: -8px; right: -7px; padding: 2px 4px; border-radius: 4px; color: #98681e; background: #ffe8ae; font-size: 6px; letter-spacing: .06em; }
     .piece.placement-selected { transform: translateY(-5px) rotate(-2deg); box-shadow: 0 9px 14px rgba(20,35,53,.2), 0 0 0 3px #e6b258; }
     .cell:hover .piece { transform: translateY(-2px); }
     .tray { display: flex; flex-wrap: wrap; gap: 9px; }
     .tray-piece {
-      width: 49px; height: 60px; padding: 0; display: grid; place-items: center;
-      border: 1px solid color-mix(in srgb, var(--piece-color) 30%, white); border-radius: 10px;
-      color: var(--piece-color); background: var(--piece-light); cursor: pointer;
+      width: 58px; height: 58px; padding: 0; display: grid; place-items: center;
+      border: 0; border-radius: 50%;
+      color: var(--piece-color); background: transparent; cursor: pointer;
       transition: transform .18s, box-shadow .18s;
     }
     .tray-piece:hover { transform: translateY(-3px); }
     .tray-piece.selected { box-shadow: 0 0 0 3px #e6b258; transform: translateY(-4px); }
     .tray-piece .piece { width: 100%; height: 100%; border: 0; box-shadow: none; background: transparent; }
-    .tray-piece .piece::before { display: none; }
+    .tray-piece .piece-art { width: 100%; height: 100%; }
     .tray-piece .piece-glyph { font-size: 25px; }
     .tray-piece .piece-label { font-size: 8px; }
     .deploy-card { margin-top: 14px; }
