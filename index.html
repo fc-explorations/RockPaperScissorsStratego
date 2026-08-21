@@ -178,6 +178,7 @@
     }
     .piece::before { content: ""; position: absolute; inset: 4px; border: 1px solid color-mix(in srgb, var(--piece-color) 18%, transparent); border-radius: 7px; }
     .piece-glyph { position: relative; font-size: clamp(20px, 4vw, 34px); line-height: .85; letter-spacing: -.1em; }
+    .piece-art { position: relative; z-index: 1; width: 82%; height: 72%; object-fit: contain; filter: drop-shadow(0 3px 3px rgba(20,35,53,.2)); }
     .piece-label { position: relative; font-size: clamp(8px, 1vw, 10px); letter-spacing: .12em; }
     .piece.hidden {
       --piece-color: #aeb7bf; --piece-light: #52637a;
@@ -606,7 +607,8 @@
       const label = visibleType ? TYPE_META[visibleType].short : "?";
       const knownClass = !isOwn && isKnown ? " known" : "";
       const selectedClass = state.phase === "deploy" && state.placementSelectedId === piece.id ? " placement-selected" : "";
-      return `<div class="piece ${typeClass}${knownClass}${selectedClass}" aria-label="${hidden ? "Hidden enemy piece" : `${typeName(piece.type)} belonging to Player ${piece.owner}`}" title="${hidden ? "Hidden enemy piece" : typeName(piece.type)}"><span class="piece-glyph">${glyph}</span><span class="piece-label">${label}</span></div>`;
+      const artwork = visibleType ? `<img class="piece-art" src="assets/${visibleType}.png" alt="">` : `<span class="piece-glyph">${glyph}</span>`;
+      return `<div class="piece ${typeClass}${knownClass}${selectedClass}" aria-label="${hidden ? "Hidden enemy piece" : `${typeName(piece.type)} belonging to Player ${piece.owner}`}" title="${hidden ? "Hidden enemy piece" : typeName(piece.type)}">${artwork}<span class="piece-label">${label}</span></div>`;
     }
 
     function displayCoordinates(viewer) {
