@@ -157,8 +157,10 @@
     .cell:hover { background: #f5f2eb; }
     .cell.neutral { background: linear-gradient(135deg, #d5e3e7, #e3edf0); }
     .cell.neutral::after { content: ""; position: absolute; inset: 7px; border: 1px dashed rgba(86,107,111,.18); border-radius: 8px; pointer-events: none; }
-    .cell.own-zone { background: linear-gradient(135deg, #b9d6df, #cce3e8); box-shadow: inset 0 0 26px rgba(67,129,154,.12); }
-    .cell.opponent-zone { background: linear-gradient(135deg, #f7f2e8, #eee9df); }
+    .cell.own-zone { box-shadow: inset 0 0 26px rgba(255,255,255,.16); }
+    .cell.opponent-zone { box-shadow: inset 0 0 22px rgba(82,66,44,.035); }
+    .cell.zone-p1 { background: linear-gradient(135deg, #b9d6df, #cce3e8); box-shadow: inset 0 0 26px rgba(67,129,154,.14); }
+    .cell.zone-p2 { background: linear-gradient(135deg, #e8c5c2, #f2d7d1); box-shadow: inset 0 0 26px rgba(178,82,72,.12); }
     .cell.selected { background: #dcecff; box-shadow: inset 0 0 0 3px var(--blue); z-index: 1; }
     .cell.legal-move { background: #e3f2e5; box-shadow: inset 0 0 0 3px #65ae73; }
     .cell.legal-attack { background: #fff0d5; box-shadow: inset 0 0 0 3px var(--gold); }
@@ -675,6 +677,8 @@
       rows.forEach(row => cols.forEach(col => {
         const piece = pieceAt(row, col);
         const classes = ["cell"];
+        if (isHomeSquare(1, row)) classes.push("zone-p1");
+        if (isHomeSquare(2, row)) classes.push("zone-p2");
         if (isHomeSquare(viewer, row)) classes.push("own-zone");
         else if (isHomeSquare(opponent(viewer), row)) classes.push("opponent-zone");
         else classes.push("neutral");
