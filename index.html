@@ -284,6 +284,7 @@
     @keyframes advance-left { 0% { right: 0; transform: translateX(0); } 55% { right: 50%; transform: translateX(50%); } 100% { right: 50%; transform: translateX(50%); } }
     @keyframes board-combat-winner { 0% { left: 0; top: 0; } 100% { left: calc(var(--combat-x, 0) * 100%); top: calc(var(--combat-y, 0) * 100%); } }
     @keyframes combat-loser-vanish { 0% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes piece-arrival { from { left: calc(var(--move-x, 0) * 100%); top: calc(var(--move-y, 0) * 100%); } to { left: 0; top: 0; } }
     @keyframes thinking { 0%, 80%, 100% { opacity: .35; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-5px); } }
     .combat-overlay { background: rgba(16,27,45,.48); }
     .combat-card { width: min(560px, 100%); padding: 28px; background: rgba(26,43,69,.97); }
@@ -305,9 +306,11 @@
     .cell.combat-attacker, .cell.combat-defender { z-index: 2; box-shadow: inset 0 0 0 4px rgba(232,177,93,.9), 0 0 22px rgba(232,177,93,.34); }
     .board.combat-board .cell.combat-attacker { z-index: 20; }
     .board.combat-board .cell.combat-attacker.combat-winner, .board.combat-board .cell.combat-draw { z-index: 30; }
+    .cell.move-arrival-cell { z-index: 15; }
     .cell.combat-attacker .piece, .cell.combat-defender .piece { z-index: 5; }
     .cell.combat-attacker.combat-winner .piece { animation: board-combat-winner 1.25s .55s cubic-bezier(.2,.8,.3,1) both; }
     .cell.combat-loser .piece { animation: combat-loser-vanish .65s 1s ease-in both; }
+    .piece.move-arrival { animation: piece-arrival .55s cubic-bezier(.2,.8,.3,1) both; }
     .battle-burst { position: absolute; z-index: 6; left: 50%; top: 50%; width: 120%; height: 120%; pointer-events: none; transform: translate(-50%, -50%); animation: burst-fade 1.2s .05s ease-out both; }
     .battle-burst-overlay { z-index: 50; left: var(--burst-board-x); top: var(--burst-board-y); width: 30%; height: 22%; }
     .battle-burst-modal { width: 42%; height: 100%; }
@@ -409,6 +412,10 @@
         clearTimeout(computerCombatTimer);
         computerCombatTimer = null;
       }
+      if (moveAnimationTimer) {
+        clearTimeout(moveAnimationTimer);
+        moveAnimationTimer = null;
+      }
       state = {
         phase: "mode-select",
         gameMode: null,
@@ -421,6 +428,7 @@
         extraChoice: { 1: null, 2: null },
         pieces: [],
         combat: null,
+        moveAnimation: null,
         winner: null,
         turnNumber: 1,
         history: [],
@@ -695,7 +703,10 @@
 
     function executeMove(attacker, row, col, defender) {
       if (!defender) {
+        const fromRow = attacker.row;
+        const fromCol = attacker.col;
         attacker.row = row; attacker.col = col;
+        setMoveAnimation(attacker, fromRow, fromCol, row, col);
         addHistory(`P${attacker.owner} moved a ${typeName(attacker.type)}.`);
         endTurn();
         render();
@@ -712,8 +723,20 @@
         computerCombatTimer = setTimeout(() => {
           computerCombatTimer = null;
           if (state.phase === "combat") resolveCombat();
-        }, 1450);
+        }, state.combat.outcome === "attacker" || state.combat.outcome === "capture" ? 1950 : state.combat.outcome === "defender" ? 1750 : 1400);
       }
+    }
+
+    function setMoveAnimation(piece, fromRow, fromCol, toRow, toCol) {
+      state.moveAnimation = { pieceId: piece.id, fromRow, fromCol, toRow, toCol };
+      if (moveAnimationTimer) clearTimeout(moveAnimationTimer);
+      moveAnimationTimer = setTimeout(() => {
+        moveAnimationTimer = null;
+        if (state.moveAnimation?.pieceId === piece.id) {
+          state.moveAnimation = null;
+          render();
+        }
+      }, 650);
     }
 
     function resolveCombat() {
@@ -864,6 +887,12 @@
       const artwork = visibleType ? `<img class="piece-art" src="assets/${visibleType}.png" alt="">` : `<span class="piece-glyph">${glyph}</span>`;
       let combatClass = "";
       let combatStyle = "";
+      let moveClass = "";
+      let moveStyle = "";
+      if (context === "board" && state.moveAnimation?.pieceId === piece.id) {
+        moveClass = " move-arrival";
+        moveStyle = ` style="--move-x:${state.moveAnimation.fromCol - state.moveAnimation.toCol};--move-y:${state.moveAnimation.fromRow - state.moveAnimation.toRow};"`;
+      }
       if (context === "combat-board" && state.combat && [state.combat.attackerId, state.combat.defenderId].includes(piece.id)) {
         if (state.combat.outcome === "draw") {
           combatClass = " combat-draw";
@@ -876,7 +905,8 @@
           combatClass = " combat-loser";
         }
       }
-      return `<div class="piece ${typeClass} ${ownerClass}${knownClass}${selectedClass}${combatClass}"${combatStyle} aria-label="${hidden ? `Hidden Player ${piece.owner} piece` : `${typeName(piece.type)} belonging to Player ${piece.owner}`}" title="${hidden ? `Hidden Player ${piece.owner} piece` : typeName(piece.type)}">${artwork}<span class="piece-label">${label}</span><span class="owner-marker" aria-hidden="true">P${piece.owner}</span></div>`;
+      const pieceStyle = combatStyle || moveStyle;
+      return `<div class="piece ${typeClass} ${ownerClass}${knownClass}${selectedClass}${combatClass}${moveClass}"${pieceStyle} aria-label="${hidden ? `Hidden Player ${piece.owner} piece` : `${typeName(piece.type)} belonging to Player ${piece.owner}`}" title="${hidden ? `Hidden Player ${piece.owner} piece` : typeName(piece.type)}">${artwork}<span class="piece-label">${label}</span><span class="owner-marker" aria-hidden="true">P${piece.owner}</span></div>`;
     }
 
     function displayCoordinates(viewer) {
@@ -925,6 +955,7 @@
           else if ((state.combat.outcome === "attacker" || state.combat.outcome === "capture") === isAttacker || (state.combat.outcome === "defender" && !isAttacker)) classes.push("combat-winner");
           else classes.push("combat-loser");
         }
+        if (piece && state.moveAnimation?.pieceId === piece.id && context === "board") classes.push("move-arrival-cell");
         const label = piece ? `${hiddenPieceLabel(piece, viewer, context)} at row ${row + 1}, column ${col + 1}` : `Empty square at row ${row + 1}, column ${col + 1}`;
         html += `<button class="${classes.join(" ")}" data-row="${row}" data-col="${col}" aria-label="${label}">${piece ? renderPiece(piece, viewer, context) : ""}</button>`;
       }));
@@ -987,6 +1018,7 @@
 
     let rulesOpen = false;
     let computerCombatTimer = null;
+    let moveAnimationTimer = null;
 
     function renderOverlay() {
       if (state.phase === "mode-select") return `<div class="overlay"><section class="pass-card mode-select-card"><div class="pass-icon" aria-hidden="true"><span>RPS</span></div><p class="eyebrow">Choose your table</p><h2>How will you play?</h2><p>Keep the classic private handoff, or let the computer command Player 2.</p><div class="mode-actions"><button class="primary-button" data-action="choose-mode" data-mode="computer">Play vs computer</button><button class="secondary-button" data-action="choose-mode" data-mode="local">Pass &amp; play</button></div></section></div>`;
