@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101b2d">
+  <title>Rock Paper Scissors Stratego</title>
+  <style>
+    :root {
+      --ink: #18263a;
+      --muted: #6f7b8a;
+      --navy: #101b2d;
+      --navy-2: #17263d;
+      --cream: #f7f4ee;
+      --paper: #fffdf9;
+      --line: #dcd9d0;
+      --grid: #cfcac0;
+      --blue: #2d78d4;
+      --blue-soft: #e7f1ff;
+      --coral: #eb705d;
+      --coral-soft: #fff0ed;
+      --gold: #d89d35;
+      --shadow: 0 18px 48px rgba(25, 40, 61, .12);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--cream);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; }
+    button:focus-visible { outline: 3px solid #80b6ff; outline-offset: 3px; }
+    .app-shell { min-height: 100vh; }
+    .topbar {
+      min-height: 80px;
+      padding: 18px clamp(18px, 4vw, 58px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      color: white;
+      background: var(--navy);
+    }
+    .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .brand-mark {
+      width: 42px; height: 42px; flex: 0 0 auto;
+      display: grid; place-items: center;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 12px;
+      color: #fff;
+      font-weight: 900;
+      letter-spacing: -2px;
+      background: linear-gradient(145deg, #31547b, #223a5a);
+      box-shadow: inset 0 1px rgba(255,255,255,.14);
+    }
+    .brand-copy { min-width: 0; }
+    .eyebrow { margin: 0 0 4px; color: #a8b8cb; font-size: 10px; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(16px, 2.2vw, 23px); line-height: 1; letter-spacing: -.04em; white-space: nowrap; }
+    h1 span { color: #edb45a; }
+    .top-actions { display: flex; align-items: center; gap: 9px; }
+    .top-actions button, .link-button {
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #f4f7fb;
+      background: rgba(255,255,255,.08);
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+    }
+    .top-actions button:hover, .link-button:hover { background: rgba(255,255,255,.16); transform: translateY(-1px); }
+    .top-actions .new-button { color: var(--navy); border-color: #e8b15d; background: #e8b15d; font-weight: 800; }
+    .top-actions .new-button:hover { background: #f3c475; }
+
+    .game-layout {
+      width: min(1420px, 100%);
+      margin: 0 auto;
+      padding: clamp(18px, 3.2vw, 42px) clamp(14px, 4vw, 58px) 45px;
+      display: grid;
+      grid-template-columns: minmax(190px, 225px) minmax(410px, 650px) minmax(190px, 225px);
+      justify-content: center;
+      align-items: start;
+      gap: clamp(18px, 3vw, 46px);
+    }
+    .side-column { display: grid; gap: 14px; }
+    .panel {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: 0 5px 20px rgba(25,40,61,.045);
+    }
+    .panel-label { margin: 0 0 13px; color: var(--muted); font-size: 10px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+    .turn-card { position: relative; overflow: hidden; }
+    .turn-card::after { content: ""; position: absolute; width: 90px; height: 90px; right: -40px; top: -42px; border-radius: 50%; background: var(--blue-soft); }
+    .turn-player { margin: 0; font-size: 24px; font-weight: 900; letter-spacing: -.06em; }
+    .turn-subtitle { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .player-dot { display: inline-block; width: 9px; height: 9px; margin-right: 7px; border-radius: 50%; background: var(--blue); vertical-align: 2px; }
+    .player-dot.p2 { background: var(--coral); }
+    .stat-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 0; border-bottom: 1px solid #ece9e1; font-size: 13px; }
+    .stat-line:last-child { border-bottom: 0; padding-bottom: 0; }
+    .stat-line:first-of-type { padding-top: 0; }
+    .stat-line strong { font-size: 16px; }
+    .inventory { display: grid; gap: 9px; }
+    .inventory-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #536072; font-size: 12px; }
+    .inventory-name { display: flex; align-items: center; gap: 8px; }
+    .mini-symbol { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 7px; color: white; font-size: 11px; font-weight: 900; }
+    .mini-symbol.rock, .piece.rock { --piece-color: #566579; --piece-light: #e6ebf0; }
+    .mini-symbol.paper, .piece.paper { --piece-color: #2878cf; --piece-light: #e6f1ff; }
+    .mini-symbol.scissors, .piece.scissors { --piece-color: #d36351; --piece-light: #ffebe7; }
+    .mini-symbol.flag, .piece.flag { --piece-color: #d69a2e; --piece-light: #fff3d9; }
+    .mini-symbol.rock { background: #566579; } .mini-symbol.paper { background: #2878cf; }
+    .mini-symbol.scissors { background: #d36351; } .mini-symbol.flag { background: #d69a2e; }
+    .history { max-height: 245px; overflow: auto; }
+    .history-list { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
+    .history-list li { display: grid; grid-template-columns: 25px 1fr; gap: 8px; color: #667180; font-size: 11px; line-height: 1.35; }
+    .history-number { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 7px; color: #7d8794; background: #f0eee9; font-size: 10px; font-weight: 800; }
+    .history-empty { color: #9da5ae; font-size: 12px; }
+
+    .board-column { min-width: 0; }
+    .board-heading { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin: 0 4px 13px; }
+    .board-heading h2 { margin: 0; font-size: clamp(20px, 3vw, 27px); letter-spacing: -.05em; }
+    .board-heading p { margin: 0; color: var(--muted); font-size: 12px; text-align: right; }
+    .board-frame { padding: 11px; border-radius: 23px; background: var(--navy); box-shadow: var(--shadow); }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: repeat(6, minmax(58px, 1fr));
+      aspect-ratio: 2 / 3;
+      overflow: hidden;
+      border: 2px solid #2c4564;
+      border-radius: 15px;
+      background: #dbe1e5;
+    }
+    .cell {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      border: 1px solid var(--grid);
+      padding: 0;
+      display: grid;
+      place-items: center;
+      background: #e9e8e3;
+      cursor: pointer;
+      transition: background .18s, box-shadow .18s;
+    }
+    .cell:hover { background: #f5f2eb; }
+    .cell.neutral { background: #d8e0e0; }
+    .cell.neutral::after { content: ""; position: absolute; inset: 7px; border: 1px dashed rgba(86,107,111,.18); border-radius: 8px; pointer-events: none; }
+    .cell.own-zone { background: #edf0f1; }
+    .cell.opponent-zone { background: #e5e5e1; }
+    .cell.selected { background: #dcecff; box-shadow: inset 0 0 0 3px var(--blue); z-index: 1; }
+    .cell.legal-move { background: #e3f2e5; box-shadow: inset 0 0 0 3px #65ae73; }
+    .cell.legal-attack { background: #fff0d5; box-shadow: inset 0 0 0 3px var(--gold); }
+    .cell.selected::before { content: "SELECTED"; position: absolute; top: 5px; left: 7px; color: var(--blue); font-size: 7px; font-weight: 900; letter-spacing: .1em; }
+    .piece {
+      position: relative;
+      width: min(72%, 80px);
+      aspect-ratio: .77;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      border: 2px solid color-mix(in srgb, var(--piece-color) 35%, white);
+      border-radius: 11px;
+      color: var(--piece-color);
+      background: var(--piece-light);
+      box-shadow: 0 4px 9px rgba(20,35,53,.13), inset 0 1px rgba(255,255,255,.8);
+      font-weight: 900;
+      transform: translateY(0);
+      transition: transform .18s, box-shadow .18s;
+      pointer-events: none;
+    }
+    .piece::before { content: ""; position: absolute; inset: 4px; border: 1px solid color-mix(in srgb, var(--piece-color) 18%, transparent); border-radius: 7px; }
+    .piece-glyph { position: relative; font-size: clamp(20px, 4vw, 34px); line-height: .85; letter-spacing: -.1em; }
+    .piece-label { position: relative; font-size: clamp(8px, 1vw, 10px); letter-spacing: .12em; }
+    .piece.hidden {
+      --piece-color: #aeb7bf; --piece-light: #52637a;
+      border-color: #8999ad; color: white;
+      background: repeating-linear-gradient(135deg, #435770 0, #435770 5px, #526780 5px, #526780 10px);
+    }
+    .piece.hidden .piece-glyph { font-size: clamp(22px, 4vw, 34px); }
+    .piece.known { box-shadow: 0 4px 9px rgba(20,35,53,.13), 0 0 0 2px rgba(216,157,53,.4); }
+    .piece.known::after { content: "KNOWN"; position: absolute; bottom: -8px; right: -7px; padding: 2px 4px; border-radius: 4px; color: #98681e; background: #ffe8ae; font-size: 6px; letter-spacing: .06em; }
+    .piece.placement-selected { transform: translateY(-5px) rotate(-2deg); box-shadow: 0 9px 14px rgba(20,35,53,.2), 0 0 0 3px #e6b258; }
+    .cell:hover .piece { transform: translateY(-2px); }
+    .tray { display: flex; flex-wrap: wrap; gap: 9px; }
+    .tray-piece {
+      width: 49px; height: 60px; padding: 0; display: grid; place-items: center;
+      border: 1px solid color-mix(in srgb, var(--piece-color) 30%, white); border-radius: 10px;
+      color: var(--piece-color); background: var(--piece-light); cursor: pointer;
+      transition: transform .18s, box-shadow .18s;
+    }
+    .tray-piece:hover { transform: translateY(-3px); }
+    .tray-piece.selected { box-shadow: 0 0 0 3px #e6b258; transform: translateY(-4px); }
+    .tray-piece .piece { width: 100%; height: 100%; border: 0; box-shadow: none; background: transparent; }
+    .tray-piece .piece::before { display: none; }
+    .tray-piece .piece-glyph { font-size: 25px; }
+    .tray-piece .piece-label { font-size: 8px; }
+    .deploy-card { margin-top: 14px; }
+    .choice-label { display: block; margin: 0 0 9px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .choice-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .choice-button { padding: 8px 4px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: #fff; cursor: pointer; font-size: 11px; font-weight: 800; }
+    .choice-button:hover { border-color: #b9c6d5; background: #f8fbff; }
+    .choice-button.active { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); box-shadow: inset 0 0 0 1px var(--blue); }
+    .deploy-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 13px; }
+    .primary-button, .secondary-button {
+      border-radius: 10px; padding: 11px 12px; cursor: pointer; font-weight: 800; font-size: 12px; transition: transform .18s, opacity .18s, background .18s;
+    }
+    .primary-button { border: 1px solid var(--blue); color: white; background: var(--blue); }
+    .primary-button:hover:not(:disabled) { background: #1f68c2; transform: translateY(-1px); }
+    .primary-button:disabled { opacity: .42; cursor: not-allowed; }
+    .secondary-button { border: 1px solid var(--line); color: #566477; background: white; }
+    .secondary-button:hover { background: #f5f7fa; transform: translateY(-1px); }
+    .message-box { min-height: 70px; padding: 15px; border-radius: 13px; color: #596575; background: #f0f3f3; font-size: 12px; line-height: 1.5; }
+    .message-box strong { display: block; margin-bottom: 3px; color: var(--ink); font-size: 13px; }
+    .legend { display: grid; gap: 9px; }
+    .legend-row { display: flex; align-items: center; gap: 9px; color: #687585; font-size: 11px; }
+    .legend-swatch { width: 20px; height: 20px; flex: 0 0 auto; border-radius: 6px; }
+    .legend-swatch.move { border: 2px solid #65ae73; background: #e3f2e5; }
+    .legend-swatch.attack { border: 2px solid var(--gold); background: #fff0d5; }
+    .legend-swatch.hidden { border: 1px solid #8999ad; background: #52637a; }
+    .legend-swatch.known { border: 2px solid #d89d35; background: #fff3d9; }
+    .bottom-note { margin: 16px 0 0; color: #a0a5a5; font-size: 10px; line-height: 1.5; text-align: center; }
+
+    .overlay {
+      position: fixed; inset: 0; z-index: 20; padding: 20px;
+      display: grid; place-items: center;
+      background: rgba(16,27,45,.94);
+      animation: fade-in .2s ease-out;
+    }
+    .pass-card { width: min(470px, 100%); padding: clamp(27px, 6vw, 50px); border: 1px solid rgba(255,255,255,.15); border-radius: 24px; color: white; background: #1a2b45; box-shadow: 0 30px 90px rgba(0,0,0,.3); text-align: center; }
+    .pass-icon { width: 72px; height: 72px; margin: 0 auto 22px; display: grid; place-items: center; border: 1px solid rgba(232,177,93,.6); border-radius: 21px; color: #e8b15d; background: rgba(232,177,93,.1); font-size: 30px; font-weight: 900; }
+    .pass-card .eyebrow { color: #a9b8cb; }
+    .pass-card h2 { margin: 0; font-size: clamp(26px, 5vw, 39px); line-height: 1.04; letter-spacing: -.06em; }
+    .pass-card p { max-width: 330px; margin: 15px auto 28px; color: #bdc9d7; font-size: 14px; line-height: 1.55; }
+    .pass-card .primary-button { width: 100%; padding: 14px; color: var(--navy); border-color: #e8b15d; background: #e8b15d; font-size: 13px; }
+    .pass-card .primary-button:hover { background: #f3c475; }
+    .pass-card .winner { margin-bottom: 6px; color: #edb45a; font-size: 12px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pop { 0% { transform: scale(.96); opacity: .5; } 100% { transform: scale(1); opacity: 1; } }
+    .combat-card { width: min(560px, 100%); padding: 28px; }
+    .combat-card h2 { font-size: clamp(22px, 5vw, 34px); }
+    .combatants { display: grid; grid-template-columns: 1fr 54px 1fr; align-items: center; gap: 12px; margin: 23px 0; }
+    .combatant { min-height: 154px; padding: 14px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.14); border-radius: 15px; background: rgba(255,255,255,.06); }
+    .combatant .piece { width: min(100px, 70%); }
+    .versus { color: #edb45a; font-size: 11px; font-weight: 900; letter-spacing: .1em; }
+    .combat-result { margin: 0 0 22px; color: white; font-size: 16px; font-weight: 800; }
+    .combat-result span { color: #a9b8cb; font-weight: 500; }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 18px; background: rgba(16,27,45,.65); animation: fade-in .15s ease-out; }
+    .rules-modal { width: min(560px, 100%); max-height: min(700px, 90vh); overflow: auto; padding: 27px; border-radius: 20px; background: var(--paper); box-shadow: 0 28px 80px rgba(16,27,45,.3); animation: pop .2s ease-out; }
+    .modal-heading { display: flex; justify-content: space-between; gap: 15px; align-items: start; }
+    .modal-heading h2 { margin: 0; font-size: 27px; letter-spacing: -.05em; }
+    .close-button { width: 32px; height: 32px; border: 1px solid var(--line); border-radius: 9px; color: #566477; background: white; cursor: pointer; font-size: 20px; line-height: 1; }
+    .rules-modal h3 { margin: 23px 0 7px; font-size: 13px; text-transform: uppercase; letter-spacing: .1em; }
+    .rules-modal p, .rules-modal li { color: #697585; font-size: 13px; line-height: 1.55; }
+    .rules-modal ul { padding-left: 20px; margin: 6px 0 0; }
+    .combat-card .primary-button { color: var(--navy); border-color: #e8b15d; background: #e8b15d; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 1050px) {
+      .game-layout { grid-template-columns: minmax(180px, 210px) minmax(390px, 580px); }
+      .side-column.right { grid-column: 1 / -1; grid-template-columns: repeat(3, 1fr); }
+      .side-column.right .panel { min-height: 100%; }
+    }
+    @media (max-width: 700px) {
+      .topbar { padding: 15px 16px; }
+      .brand-mark { width: 36px; height: 36px; border-radius: 10px; }
+      .top-actions button { padding: 9px 10px; font-size: 12px; }
+      .top-actions .new-button { display: none; }
+      .game-layout { display: flex; flex-direction: column; padding: 19px 14px 30px; gap: 16px; }
+      .board-column { order: 1; width: 100%; }
+      .side-column.left { order: 2; width: 100%; grid-template-columns: 1fr 1fr; }
+      .side-column.right { order: 3; width: 100%; display: grid; grid-template-columns: 1fr; }
+      .side-column.left .panel:first-child { grid-column: 1 / -1; }
+      .board-heading { align-items: start; }
+      .board-heading p { max-width: 145px; }
+      .board { grid-template-rows: repeat(6, minmax(48px, 1fr)); }
+      .panel { padding: 15px; border-radius: 15px; }
+      .history { max-height: 180px; }
+      .piece { border-radius: 9px; }
+      .piece-label { letter-spacing: .06em; }
+    }
+    @media (max-width: 420px) {
+      h1 { font-size: 15px; }
+      .brand { gap: 9px; }
+      .board-frame { padding: 7px; border-radius: 17px; }
+      .board { border-radius: 11px; }
+      .cell.selected::before { display: none; }
+      .side-column.left { grid-template-columns: 1fr; }
+      .combatants { grid-template-columns: 1fr 34px 1fr; gap: 6px; }
+      .combat-card { padding: 20px 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="app-shell"></div>
+
+  <script>
+    "use strict";
+
+    const BOARD_ROWS = 6;
+    const BOARD_COLS = 4;
+    const TYPES = ["rock", "paper", "scissors", "flag"];
+    const MOBILE_TYPES = ["rock", "paper", "scissors"];
+    const TYPE_META = {
+      rock: { name: "Rock", glyph: "R", short: "R" },
+      paper: { name: "Paper", glyph: "P", short: "P" },
+      scissors: { name: "Scissors", glyph: "S", short: "S" },
+      flag: { name: "Flag", glyph: "⚑", short: "F" }
+    };
+    const beats = { rock: "scissors", scissors: "paper", paper: "rock" };
+    const app = document.getElementById("app");
+
+    let state;
+
+    function createPiece(owner, index, type) {
+      return {
+        id: `p${owner}-${index}`,
+        owner,
+        type,
+        row: null,
+        col: null,
+        alive: true,
+        revealedTo: { 1: false, 2: false }
+      };
+    }
+
+    function initializeGame() {
+      state = {
+        phase: "deploy",
+        deploymentPlayer: 1,
+        currentPlayer: 1,
+        selectedId: null,
+        placementSelectedId: null,
+        extraChoice: { 1: null, 2: null },
+        pieces: [],
+        combat: null,
+        winner: null,
+        turnNumber: 1,
+        history: [],
+        message: "Choose your secret extra piece, then place all eight pieces in your home rows."
+      };
+      [1, 2].forEach(owner => {
+        const types = ["rock", "rock", "paper", "paper", "scissors", "scissors", "flag", null];
+        types.forEach((type, index) => state.pieces.push(createPiece(owner, index + 1, type)));
+      });
+      render();
+    }
+
+    function pieceById(id) { return state.pieces.find(piece => piece.id === id); }
+    function piecesOf(owner) { return state.pieces.filter(piece => piece.owner === owner); }
+    function alivePiecesOf(owner) { return piecesOf(owner).filter(piece => piece.alive); }
+    function isInside(row, col) { return row >= 0 && row < BOARD_ROWS && col >= 0 && col < BOARD_COLS; }
+    function pieceAt(row, col) { return state.pieces.find(piece => piece.alive && piece.row === row && piece.col === col); }
+    function ownRows(owner) { return owner === 1 ? [4, 5] : [0, 1]; }
+    function isHomeSquare(owner, row) { return ownRows(owner).includes(row); }
+    function typeName(type) { return TYPE_META[type]?.name || "Unknown"; }
+    function opponent(owner) { return owner === 1 ? 2 : 1; }
+
+    function setExtraChoice(type) {
+      const player = state.deploymentPlayer;
+      state.extraChoice[player] = type;
+      const extra = piecesOf(player).find(piece => piece.type === null);
+      if (extra) extra.type = type;
+      state.message = `${typeName(type)} selected as your secret eighth piece. Now arrange your army.`;
+      render();
+    }
+
+    function selectablePlacementPiece(id) {
+      const piece = pieceById(id);
+      return piece && piece.owner === state.deploymentPlayer && piece.alive;
+    }
+
+    function handleTrayClick(id) {
+      if (state.phase !== "deploy" || !selectablePlacementPiece(id)) return;
+      const piece = pieceById(id);
+      if (piece.row !== null) {
+        state.placementSelectedId = id;
+        state.message = `${typeName(piece.type)} selected. Tap another home square to move or swap it.`;
+      } else {
+        state.placementSelectedId = id;
+        state.message = `${typeName(piece.type)} selected. Tap an empty home square to place it.`;
+      }
+      render();
+    }
+
+    function handleDeploymentCell(row, col) {
+      const owner = state.deploymentPlayer;
+      if (!isHomeSquare(owner, row)) {
+        state.message = "Your pieces must stay within your two highlighted home rows.";
+        render();
+        return;
+      }
+      const target = pieceAt(row, col);
+      const selected = state.placementSelectedId ? pieceById(state.placementSelectedId) : null;
+      if (!selected) {
+        if (target && target.owner === owner) {
+          state.placementSelectedId = target.id;
+          state.message = `${typeName(target.type)} selected. Tap another home square to move or swap it.`;
+          render();
+        }
+        return;
+      }
+      if (target && target.owner !== owner) return;
+      if (target && target.id === selected.id) {
+        state.placementSelectedId = null;
+        state.message = "Selection cleared.";
+      } else if (target) {
+        const oldRow = selected.row;
+        const oldCol = selected.col;
+        selected.row = target.row; selected.col = target.col;
+        target.row = oldRow; target.col = oldCol;
+        state.placementSelectedId = null;
+        state.message = "Pieces swapped. Your deployment is taking shape.";
+      } else {
+        selected.row = row; selected.col = col;
+        state.placementSelectedId = null;
+        state.message = "Piece placed. You can still move or swap pieces before confirming.";
+      }
+      render();
+    }
+
+    function resetDeployment() {
+      const owner = state.deploymentPlayer;
+      piecesOf(owner).forEach(piece => { piece.row = null; piece.col = null; });
+      state.placementSelectedId = null;
+      state.message = "Deployment reset. Choose a piece from the tray to begin again.";
+      render();
+    }
+
+    function randomizeDeployment() {
+      const owner = state.deploymentPlayer;
+      if (!state.extraChoice[owner]) setExtraChoice(MOBILE_TYPES[Math.floor(Math.random() * MOBILE_TYPES.length)]);
+      const squares = ownRows(owner).flatMap(row => [0, 1, 2, 3].map(col => ({ row, col })));
+      for (let i = squares.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [squares[i], squares[j]] = [squares[j], squares[i]];
+      }
+      piecesOf(owner).forEach((piece, index) => { piece.row = squares[index].row; piece.col = squares[index].col; });
+      state.placementSelectedId = null;
+      state.message = "Deployment randomized. Review it, then confirm when ready.";
+      render();
+    }
+
+    function confirmDeployment() {
+      const owner = state.deploymentPlayer;
+      const deployed = piecesOf(owner).filter(piece => piece.row !== null && piece.col !== null).length;
+      if (!state.extraChoice[owner] || deployed !== 8) {
+        state.message = !state.extraChoice[owner] ? "Choose your secret extra piece before confirming." : "Place all 8 pieces in your two home rows before confirming.";
+        render();
+        return;
+      }
+      state.placementSelectedId = null;
+      if (owner === 1) {
+        state.deploymentPlayer = 2;
+        state.phase = "pass-p2-deploy";
+        state.message = "Player 1 deployment is locked in.";
+      } else {
+        state.currentPlayer = 1;
+        state.phase = "pass-first-turn";
+        state.message = "Both armies are deployed. Player 1 moves first.";
+      }
+      render();
+    }
+
+    function beginPass() {
+      if (state.phase === "pass-p2-deploy") {
+        state.phase = "deploy";
+        state.message = "Choose your secret extra piece, then place all eight pieces in your home rows.";
+      } else if (state.phase === "pass-first-turn" || state.phase === "turn-pass") {
+        state.phase = "playing";
+        state.message = `Player ${state.currentPlayer}, choose a Rock, Paper, or Scissors piece to move.`;
+      }
+      render();
+    }
+
+    function getLegalMoves(piece) {
+      if (!piece || !piece.alive || piece.owner !== state.currentPlayer || piece.type === "flag") return [];
+      const destinations = [[piece.row - 1, piece.col], [piece.row + 1, piece.col], [piece.row, piece.col - 1], [piece.row, piece.col + 1]];
+      return destinations.filter(([row, col]) => {
+        if (!isInside(row, col)) return false;
+        const target = pieceAt(row, col);
+        return !target || target.owner !== piece.owner;
+      }).map(([row, col]) => ({ row, col, attack: Boolean(pieceAt(row, col)) }));
+    }
+
+    function selectPiece(id) {
+      const piece = pieceById(id);
+      if (!piece || !piece.alive || piece.owner !== state.currentPlayer) return;
+      if (piece.type === "flag") {
+        state.selectedId = id;
+        state.message = "The Flag cannot move. Select a Rock, Paper, or Scissors piece.";
+      } else if (state.selectedId === id) {
+        state.selectedId = null;
+        state.message = "Selection cleared. Choose one of your mobile pieces.";
+      } else {
+        state.selectedId = id;
+        state.message = `${typeName(piece.type)} selected. Choose a highlighted adjacent square.`;
+      }
+      render();
+    }
+
+    function handlePlayingCell(row, col) {
+      const target = pieceAt(row, col);
+      if (target && target.owner === state.currentPlayer) {
+        selectPiece(target.id);
+        return;
+      }
+      if (!state.selectedId) {
+        state.message = "Select one of your pieces first.";
+        render();
+        return;
+      }
+      const selected = pieceById(state.selectedId);
+      const legal = getLegalMoves(selected).find(move => move.row === row && move.col === col);
+      if (!legal) {
+        state.message = selected.type === "flag" ? "The Flag cannot move." : "That square is not a legal one-square move.";
+        render();
+        return;
+      }
+      movePiece(selected, row, col, target);
+    }
+
+    function movePiece(attacker, row, col, defender) {
+      state.selectedId = null;
+      executeMove(attacker, row, col, defender);
+    }
+
+    function executeMove(attacker, row, col, defender) {
+      if (!defender) {
+        attacker.row = row; attacker.col = col;
+        addHistory(`P${attacker.owner} moved a ${typeName(attacker.type)}.`);
+        endTurn();
+        return;
+      }
+      attacker.revealedTo[1] = true; attacker.revealedTo[2] = true;
+      defender.revealedTo[1] = true; defender.revealedTo[2] = true;
+      const outcome = defender.type === "flag" ? "capture" : attacker.type === defender.type ? "draw" : beats[attacker.type] === defender.type ? "attacker" : "defender";
+      state.combat = { attackerId: attacker.id, defenderId: defender.id, row, col, outcome };
+      state.phase = "combat";
+      state.message = `Combat: ${typeName(attacker.type)} versus ${typeName(defender.type)}.`;
+      render();
+    }
+
+    function resolveCombat() {
+      if (!state.combat) return;
+      const combat = state.combat;
+      const attacker = pieceById(combat.attackerId);
+      const defender = pieceById(combat.defenderId);
+      if (!attacker || !defender) return;
+      if (combat.outcome === "capture") {
+        defender.alive = false;
+        attacker.row = combat.row; attacker.col = combat.col;
+        state.winner = attacker.owner;
+        state.phase = "gameover";
+        state.combat = null;
+        addHistory(`P${attacker.owner} captured the Flag and won.`);
+      } else if (combat.outcome === "draw") {
+        attacker.alive = false; defender.alive = false;
+        attacker.row = attacker.col = defender.row = defender.col = null;
+        addHistory(`${typeName(attacker.type)} met ${typeName(defender.type)} — both removed.`);
+        state.combat = null;
+        endTurn();
+      } else if (combat.outcome === "attacker") {
+        defender.alive = false;
+        attacker.row = combat.row; attacker.col = combat.col;
+        addHistory(`P${attacker.owner}'s ${typeName(attacker.type)} defeated ${typeName(defender.type)}.`);
+        state.combat = null;
+        endTurn();
+      } else {
+        attacker.alive = false;
+        attacker.row = attacker.col = null;
+        addHistory(`P${defender.owner}'s ${typeName(defender.type)} defeated ${typeName(attacker.type)}.`);
+        state.combat = null;
+        endTurn();
+      }
+      render();
+    }
+
+    function endTurn() {
+      state.turnNumber += 1;
+      state.currentPlayer = opponent(state.currentPlayer);
+      state.phase = "turn-pass";
+      state.selectedId = null;
+      state.message = `Player ${opponent(state.currentPlayer)} turn complete.`;
+    }
+
+    function addHistory(text) {
+      state.history.unshift(text);
+      if (state.history.length > 8) state.history.pop();
+    }
+
+    function renderPiece(piece, viewer, context = "board") {
+      const isOwn = piece.owner === viewer;
+      const isKnown = piece.revealedTo[viewer];
+      const hidden = context !== "deployment" && !isOwn && !isKnown;
+      const visibleType = hidden ? null : piece.type;
+      const typeClass = visibleType || "hidden";
+      const glyph = visibleType ? TYPE_META[visibleType].glyph : "?";
+      const label = visibleType ? TYPE_META[visibleType].short : "?";
+      const knownClass = !isOwn && isKnown ? " known" : "";
+      const selectedClass = state.phase === "deploy" && state.placementSelectedId === piece.id ? " placement-selected" : "";
+      return `<div class="piece ${typeClass}${knownClass}${selectedClass}" aria-label="${hidden ? "Hidden enemy piece" : `${typeName(piece.type)} belonging to Player ${piece.owner}`}" title="${hidden ? "Hidden enemy piece" : typeName(piece.type)}"><span class="piece-glyph">${glyph}</span><span class="piece-label">${label}</span></div>`;
+    }
+
+    function displayCoordinates(viewer) {
+      const rows = viewer === 1 ? [0, 1, 2, 3, 4, 5] : [5, 4, 3, 2, 1, 0];
+      const cols = viewer === 1 ? [0, 1, 2, 3] : [3, 2, 1, 0];
+      return { rows, cols };
+    }
+
+    function renderBoard(viewer) {
+      const { rows, cols } = displayCoordinates(viewer);
+      const selected = state.selectedId ? pieceById(state.selectedId) : null;
+      const legalMoves = selected && state.phase === "playing" ? getLegalMoves(selected) : [];
+      const legalMap = new Map(legalMoves.map(move => [`${move.row}-${move.col}`, move]));
+      let html = "";
+      rows.forEach(row => cols.forEach(col => {
+        const piece = pieceAt(row, col);
+        const classes = ["cell"];
+        if (isHomeSquare(viewer, row)) classes.push("own-zone");
+        else if (isHomeSquare(opponent(viewer), row)) classes.push("opponent-zone");
+        else classes.push("neutral");
+        if (selected && selected.row === row && selected.col === col) classes.push("selected");
+        const legal = legalMap.get(`${row}-${col}`);
+        if (legal) classes.push(legal.attack ? "legal-attack" : "legal-move");
+        const label = piece ? `${hiddenPieceLabel(piece, viewer)} at row ${row + 1}, column ${col + 1}` : `Empty square at row ${row + 1}, column ${col + 1}`;
+        html += `<button class="${classes.join(" ")}" data-row="${row}" data-col="${col}" aria-label="${label}">${piece ? renderPiece(piece, viewer) : ""}</button>`;
+      }));
+      return html;
+    }
+
+    function hiddenPieceLabel(piece, viewer) {
+      if (piece.owner === viewer || piece.revealedTo[viewer]) return `Player ${piece.owner}'s ${typeName(piece.type)}`;
+      return `Hidden Player ${piece.owner} piece`;
+    }
+
+    function remainingMarkup(owner, viewer) {
+      const alive = alivePiecesOf(owner);
+      if (owner !== viewer) {
+        return `<div class="inventory-row"><span class="inventory-name"><span class="mini-symbol hidden">?</span>Hidden army</span><strong>${alive.length}</strong></div>`;
+      }
+      return TYPES.map(type => {
+        const count = alive.filter(piece => piece.type === type).length;
+        return `<div class="inventory-row"><span class="inventory-name"><span class="mini-symbol ${type}">${TYPE_META[type].short}</span>${typeName(type)}</span><strong>${count}</strong></div>`;
+      }).join("");
+    }
+
+    function renderTray(owner) {
+      return piecesOf(owner).filter(piece => piece.row === null).map(piece => `<button class="tray-piece ${piece.type} ${state.placementSelectedId === piece.id ? "selected" : ""}" data-tray-id="${piece.id}" aria-label="Select ${typeName(piece.type)} for placement">${renderPiece(piece, owner, "deployment")}</button>`).join("");
+    }
+
+    function currentStatus() {
+      if (state.phase === "deploy") return `Player ${state.deploymentPlayer} deployment`;
+      if (state.phase === "playing") return `Player ${state.currentPlayer} turn`;
+      if (state.phase === "combat") return "Combat reveal";
+      if (state.phase === "gameover") return "Game complete";
+      return "Pass device";
+    }
+
+    function render() {
+      const viewer = state.phase === "deploy" ? state.deploymentPlayer : state.currentPlayer;
+      const deployment = state.phase === "deploy";
+      const selected = state.selectedId ? pieceById(state.selectedId) : null;
+      const deployedCount = deployment ? piecesOf(viewer).filter(piece => piece.row !== null).length : 0;
+      const canConfirm = deployment && state.extraChoice[viewer] && deployedCount === 8;
+      app.innerHTML = `
+        <header class="topbar">
+          <div class="brand"><div class="brand-mark" aria-hidden="true">RPS</div><div class="brand-copy"><p class="eyebrow">Pass &amp; play tactics</p><h1>Rock Paper Scissors <span>Stratego</span></h1></div></div>
+          <nav class="top-actions" aria-label="Game controls"><button class="rules-button" data-action="rules">Rules</button><button class="new-button" data-action="new">New game</button></nav>
+        </header>
+        <main class="game-layout">
+          <aside class="side-column left">
+            <section class="panel turn-card"><p class="panel-label">Now viewing</p><p class="turn-player"><span class="player-dot ${viewer === 2 ? "p2" : ""}"></span>Player ${viewer}</p><p class="turn-subtitle">${currentStatus()} · Turn ${state.turnNumber}</p></section>
+            <section class="panel"><p class="panel-label">Battlefield</p><div class="stat-line"><span>Player 1 pieces</span><strong>${alivePiecesOf(1).length}</strong></div><div class="stat-line"><span>Player 2 pieces</span><strong>${alivePiecesOf(2).length}</strong></div><div class="stat-line"><span>Moves played</span><strong>${Math.max(0, state.turnNumber - 1)}</strong></div></section>
+            ${deployment ? `<section class="panel deploy-card"><p class="panel-label">Your army · ${deployedCount}/8 placed</p><span class="choice-label">Choose your secret extra piece</span><div class="choice-row">${MOBILE_TYPES.map(type => `<button class="choice-button ${state.extraChoice[viewer] === type ? "active" : ""}" data-choice="${type}">${typeName(type)}</button>`).join("")}</div><span class="choice-label" style="margin-top:15px">Pieces in tray</span><div class="tray">${renderTray(viewer) || `<span class="history-empty">All pieces deployed</span>`}</div><div class="deploy-actions"><button class="secondary-button" data-action="randomize">Randomize</button><button class="secondary-button" data-action="reset-deploy">Reset</button></div><button class="primary-button" data-action="confirm" style="width:100%;margin-top:8px" ${canConfirm ? "" : "disabled"}>Confirm deployment</button></section>` : `<section class="panel"><p class="panel-label">Your remaining pieces</p><div class="inventory">${remainingMarkup(viewer, viewer)}</div></section>`}
+          </aside>
+          <section class="board-column" aria-label="Game board"><div class="board-heading"><div><p class="panel-label">The arena</p><h2>${deployment ? "Build your formation" : state.phase === "gameover" ? `Player ${state.winner} wins` : `Player ${state.currentPlayer}'s move`}</h2></div><p>${deployment ? "Tap a piece, then tap a home square." : selected ? `Selected: ${typeName(selected.type)}` : "Your side is at the bottom."}</p></div><div class="board-frame"><div class="board" role="grid" aria-label="4 by 6 Rock Paper Scissors Stratego board">${renderBoard(viewer)}</div></div><div class="panel" style="margin-top:14px"><div class="message-box"><strong>${deployment ? "Deployment briefing" : state.phase === "playing" ? "Your move" : "Game status"}</strong>${state.message}</div></div></section>
+          <aside class="side-column right"><section class="panel"><p class="panel-label">Player 1 · remaining</p><div class="inventory">${remainingMarkup(1, viewer)}</div></section><section class="panel"><p class="panel-label">Player 2 · remaining</p><div class="inventory">${remainingMarkup(2, viewer)}</div></section><section class="panel"><p class="panel-label">Board key</p><div class="legend"><div class="legend-row"><span class="legend-swatch move"></span>Move</div><div class="legend-row"><span class="legend-swatch attack"></span>Attack</div><div class="legend-row"><span class="legend-swatch hidden"></span>Hidden enemy</div><div class="legend-row"><span class="legend-swatch known"></span>Known enemy</div></div></section><section class="panel history"><p class="panel-label">Battle log</p>${state.history.length ? `<ol class="history-list">${state.history.map((item, index) => `<li><span class="history-number">${state.history.length - index}</span><span>${item}</span></li>`).join("")}</ol>` : `<span class="history-empty">No moves yet. The quiet before the storm.</span>`}</section><p class="bottom-note">Keep the screen covered during every handoff.<br>Good tactics start with good secrets.</p></aside>
+        </main>
+        ${renderOverlay()}
+        ${state.phase === "combat" ? renderCombatModal() : ""}
+        ${rulesOpen ? renderRulesModal() : ""}`;
+      bindEvents();
+    }
+
+    let rulesOpen = false;
+
+    function renderOverlay() {
+      const overlayPhases = ["pass-p2-deploy", "pass-first-turn", "turn-pass", "gameover"];
+      if (!overlayPhases.includes(state.phase)) return "";
+      if (state.phase === "gameover") return `<div class="overlay"><section class="pass-card"><div class="pass-icon">⚑</div><p class="winner">Victory</p><h2>Player ${state.winner} Wins</h2><p>The Flag has fallen. A sharp read and a sharper move decided the match.</p><button class="primary-button" data-action="new">Play again</button></section></div>`;
+      const nextPlayer = state.phase === "pass-p2-deploy" ? 2 : state.currentPlayer;
+      const isDeployment = state.phase === "pass-p2-deploy";
+      const title = isDeployment ? "Pass the device to Player 2" : state.phase === "pass-first-turn" ? "The board is ready" : `Pass the device to Player ${nextPlayer}`;
+      const copy = isDeployment ? "Player 1's formation is locked. Player 2 can now choose a secret piece and deploy in private." : state.phase === "pass-first-turn" ? "Both formations are locked. Player 1 has the opening move." : `Player ${opponent(nextPlayer)}'s turn is complete. Hand over the device, then reveal your side when ready.`;
+      const button = isDeployment ? "Start Player 2 deployment" : state.phase === "pass-first-turn" ? "Start Player 1 turn" : `Start Player ${nextPlayer} turn`;
+      return `<div class="overlay"><section class="pass-card"><div class="pass-icon" aria-hidden="true">⇄</div><p class="eyebrow">Private handoff</p><h2>${title}</h2><p>${copy}</p><button class="primary-button" data-action="begin-pass">${button}</button></section></div>`;
+    }
+
+    function combatDetails() {
+      const attacker = pieceById(state.combat.attackerId);
+      const defender = pieceById(state.combat.defenderId);
+      let title = "Combat resolved";
+      let result = "";
+      if (state.combat.outcome === "capture") { title = "Flag captured"; result = `${typeName(attacker.type)} captures the Flag`; }
+      else if (state.combat.outcome === "draw") { title = "Both pieces removed"; result = `${typeName(attacker.type)} meets ${typeName(defender.type)}`; }
+      else if (state.combat.outcome === "attacker") { title = `${typeName(attacker.type)} wins`; result = `${typeName(attacker.type)} defeats ${typeName(defender.type)}`; }
+      else { title = `${typeName(defender.type)} wins`; result = `${typeName(defender.type)} defeats ${typeName(attacker.type)}`; }
+      return { attacker, defender, title, result };
+    }
+
+    function renderCombatModal() {
+      const { attacker, defender, title, result } = combatDetails();
+      return `<div class="overlay"><section class="pass-card combat-card"><p class="eyebrow">Pieces revealed</p><h2>${title}</h2><div class="combatants"><div class="combatant">${renderPiece(attacker, attacker.owner, "combat")}</div><div class="versus">VS</div><div class="combatant">${renderPiece(defender, defender.owner, "combat")}</div></div><p class="combat-result">${result} <span>· Review the reveal, then continue.</span></p><button class="primary-button" data-action="continue-combat">Continue</button></section></div>`;
+    }
+
+    function renderRulesModal() {
+      return `<div class="modal-backdrop" data-action="close-rules"><section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" onclick="event.stopPropagation()"><div class="modal-heading"><div><p class="panel-label">How to play</p><h2 id="rules-title">Rules of the arena</h2></div><button class="close-button" data-action="close-rules" aria-label="Close rules">×</button></div><h3>Goal</h3><p>Capture the opponent's Flag. Player 1 moves first.</p><h3>Army</h3><ul><li>2 Rock, 2 Paper, 2 Scissors, and 1 Flag.</li><li>1 secret extra Rock, Paper, or Scissors.</li></ul><h3>Movement</h3><p>Move one Rock, Paper, or Scissors one square orthogonally. Pieces cannot move diagonally, jump, or land on a friendly piece. The Flag cannot move.</p><h3>Combat</h3><ul><li>Rock beats Scissors.</li><li>Scissors beats Paper.</li><li>Paper beats Rock.</li><li>Matching pieces remove each other.</li><li>Any mobile piece captures the Flag immediately.</li></ul><h3>Hidden information</h3><p>Enemy pieces are hidden until combat reveals them. A revealed enemy that survives stays known for the rest of the game. Keep the screen covered during each pass-device handoff.</p></section></div>`;
+    }
+
+    function bindEvents() {
+      app.querySelectorAll("[data-row][data-col]").forEach(cell => cell.addEventListener("click", () => {
+        const row = Number(cell.dataset.row); const col = Number(cell.dataset.col);
+        if (state.phase === "deploy") handleDeploymentCell(row, col);
+        else if (state.phase === "playing") handlePlayingCell(row, col);
+      }));
+      app.querySelectorAll("[data-tray-id]").forEach(button => button.addEventListener("click", () => handleTrayClick(button.dataset.trayId)));
+      app.querySelectorAll("[data-choice]").forEach(button => button.addEventListener("click", () => setExtraChoice(button.dataset.choice)));
+      app.querySelectorAll("[data-action]").forEach(button => button.addEventListener("click", () => handleAction(button.dataset.action)));
+    }
+
+    function handleAction(action) {
+      if (action === "new") { initializeGame(); return; }
+      if (action === "rules") { rulesOpen = true; render(); return; }
+      if (action === "close-rules") { rulesOpen = false; render(); return; }
+      if (action === "begin-pass") { beginPass(); return; }
+      if (action === "confirm") { confirmDeployment(); return; }
+      if (action === "reset-deploy") { resetDeployment(); return; }
+      if (action === "randomize") { randomizeDeployment(); return; }
+      if (action === "continue-combat") { resolveCombat(); return; }
+    }
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && rulesOpen) { rulesOpen = false; render(); }
+    });
+
+    initializeGame();
+  </script>
+</body>
+</html>
