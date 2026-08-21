@@ -51,17 +51,19 @@
     }
     .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
     .brand-mark {
-      width: 46px; height: 54px; flex: 0 0 auto;
+      position: relative;
+      width: 50px; height: 58px; flex: 0 0 auto;
       display: grid; place-items: center;
-      border: 2px solid #d89d35;
-      border-radius: 9px 9px 17px 17px;
       color: #fff;
       font-weight: 900;
       letter-spacing: -2px;
-      background: linear-gradient(145deg, #31547b, #223a5a);
-      box-shadow: inset 0 1px rgba(255,255,255,.14);
+      background: linear-gradient(145deg, #edc56b, #b87c24);
       clip-path: polygon(50% 0, 100% 10%, 100% 74%, 50% 100%, 0 74%, 0 10%);
+      filter: drop-shadow(0 4px 5px rgba(0,0,0,.22));
+      isolation: isolate;
     }
+    .brand-mark::before { content: ""; position: absolute; z-index: 0; inset: 3px; background: linear-gradient(145deg, #35577e, #172c49 68%, #102238); clip-path: polygon(50% 0, 100% 10%, 100% 74%, 50% 100%, 0 74%, 0 10%); }
+    .brand-mark span { position: relative; z-index: 1; font-size: 17px; }
     .brand-copy { min-width: 0; }
     .eyebrow { margin: 0 0 4px; color: #a8b8cb; font-size: 10px; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
     h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(16px, 2.2vw, 23px); line-height: 1; letter-spacing: -.035em; white-space: nowrap; }
@@ -99,7 +101,7 @@
       box-shadow: 0 7px 22px rgba(25,40,61,.055), inset 0 1px rgba(255,255,255,.9);
     }
     .panel-label { margin: 0 0 13px; color: #657183; font-family: Georgia, "Times New Roman", serif; font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
-    .turn-card { position: relative; overflow: hidden; border-top: 3px solid var(--blue); }
+    .turn-card { position: relative; overflow: hidden; background: linear-gradient(135deg, #eaf3ff 0%, #f8fbff 42%, #fffdf8 100%); }
     .turn-card::after { content: ""; position: absolute; width: 90px; height: 90px; right: -40px; top: -42px; border-radius: 50%; background: var(--blue-soft); }
     .turn-player { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 24px; font-weight: 700; letter-spacing: -.04em; }
     .turn-subtitle { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
@@ -153,10 +155,10 @@
       transition: background .18s, box-shadow .18s;
     }
     .cell:hover { background: #f5f2eb; }
-    .cell.neutral { background: #dce8ea; }
+    .cell.neutral { background: linear-gradient(135deg, #d5e3e7, #e3edf0); }
     .cell.neutral::after { content: ""; position: absolute; inset: 7px; border: 1px dashed rgba(86,107,111,.18); border-radius: 8px; pointer-events: none; }
-    .cell.own-zone { background: #dce9ed; }
-    .cell.opponent-zone { background: #f2eee5; }
+    .cell.own-zone { background: linear-gradient(135deg, #b9d6df, #cce3e8); box-shadow: inset 0 0 26px rgba(67,129,154,.12); }
+    .cell.opponent-zone { background: linear-gradient(135deg, #f7f2e8, #eee9df); }
     .cell.selected { background: #dcecff; box-shadow: inset 0 0 0 3px var(--blue); z-index: 1; }
     .cell.legal-move { background: #e3f2e5; box-shadow: inset 0 0 0 3px #65ae73; }
     .cell.legal-attack { background: #fff0d5; box-shadow: inset 0 0 0 3px var(--gold); }
@@ -217,18 +219,19 @@
     .tray-piece .piece-art { width: 100%; height: 100%; }
     .tray-piece .piece-glyph { font-size: 25px; }
     .tray-piece .piece-label { font-size: 8px; }
-    .deploy-card { margin-top: 14px; border-top: 3px solid var(--gold); }
+    .deploy-card { position: relative; overflow: hidden; margin-top: 14px; background: linear-gradient(135deg, #fff4dc 0%, #fffaf0 38%, #fffdf8 100%); }
+    .deploy-card::after { content: ""; position: absolute; width: 112px; height: 112px; right: -58px; top: 44px; border-radius: 50%; background: rgba(216,157,53,.1); pointer-events: none; }
     .choice-label { display: block; margin: 0 0 9px; color: var(--muted); font-size: 11px; font-weight: 700; }
     .choice-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
     .choice-button { padding: 8px 4px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: #fff; cursor: pointer; font-size: 11px; font-weight: 800; }
     .choice-button:hover { border-color: #b9c6d5; background: #f8fbff; }
-    .choice-button.active { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); box-shadow: inset 0 0 0 1px var(--blue); }
+    .choice-button.active { border-color: var(--navy); color: white; background: linear-gradient(145deg, #203b5f, #10233d); box-shadow: 0 5px 12px rgba(16,27,45,.2), inset 0 1px rgba(255,255,255,.16); }
     .deploy-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 13px; }
     .primary-button, .secondary-button {
       border-radius: 10px; padding: 11px 12px; cursor: pointer; font-weight: 800; font-size: 12px; transition: transform .18s, opacity .18s, background .18s;
     }
-    .primary-button { border: 1px solid var(--blue); color: white; background: var(--blue); }
-    .primary-button:hover:not(:disabled) { background: #1f68c2; transform: translateY(-1px); }
+    .primary-button { border: 1px solid #2469b6; color: white; background: linear-gradient(145deg, #3a86de, #2569b9); box-shadow: 0 6px 14px rgba(45,120,212,.18); }
+    .primary-button:hover:not(:disabled) { background: linear-gradient(145deg, #4a94e9, #1f68c2); transform: translateY(-1px); }
     .primary-button:disabled { opacity: .42; cursor: not-allowed; }
     .secondary-button { border: 1px solid var(--line); color: #566477; background: white; }
     .secondary-button:hover { background: #f5f7fa; transform: translateY(-1px); }
@@ -721,7 +724,7 @@
       const canConfirm = deployment && state.extraChoice[viewer] && deployedCount === 8;
       app.innerHTML = `
         <header class="topbar">
-          <div class="brand"><div class="brand-mark" aria-hidden="true">RPS</div><div class="brand-copy"><p class="eyebrow">Pass &amp; play tactics</p><h1>Rock Paper Scissors <span>Stratego</span></h1></div></div>
+          <div class="brand"><div class="brand-mark" aria-hidden="true"><span>RPS</span></div><div class="brand-copy"><p class="eyebrow">Pass &amp; play tactics</p><h1>Rock Paper Scissors <span>Stratego</span></h1></div></div>
           <nav class="top-actions" aria-label="Game controls"><button class="rules-button" data-action="rules">Rules</button><button class="new-button" data-action="new">New game</button></nav>
         </header>
         <main class="game-layout">
