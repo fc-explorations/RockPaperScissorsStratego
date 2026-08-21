@@ -854,7 +854,8 @@
       const typeClass = visibleType || "hidden";
       const glyph = visibleType ? TYPE_META[visibleType].glyph : "?";
       const label = visibleType ? TYPE_META[visibleType].short : "?";
-      const knownClass = !isOwn && isKnown ? " known" : "";
+      const knownToComputer = state.gameMode === "computer" && piece.owner === 1 && piece.revealedTo[state.aiPlayer];
+      const knownClass = (!isOwn && isKnown) || knownToComputer ? " known" : "";
       const selectedClass = state.phase === "deploy" && state.placementSelectedId === piece.id ? " placement-selected" : "";
       const ownerClass = piece.owner === 1 ? "owner-p1" : "owner-p2";
       const artwork = visibleType ? `<img class="piece-art" src="assets/${visibleType}.png" alt="">` : `<span class="piece-glyph">${glyph}</span>`;
