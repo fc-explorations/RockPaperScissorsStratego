@@ -202,8 +202,8 @@
     .piece.hidden.owner-p2 { background: repeating-linear-gradient(135deg, #8a4f4c 0, #8a4f4c 5px, #a8665e 5px, #a8665e 10px); }
     .piece.hidden .piece-glyph { font-size: clamp(19px, 3.5vw, 29px); }
     .piece.known .piece-art { filter: drop-shadow(0 5px 4px rgba(20,35,53,.23)) drop-shadow(0 0 2px rgba(216,157,53,.75)); }
-    .piece.known::before { content: ""; position: absolute; z-index: 4; top: 6px; right: 7px; display: block; width: 5px; height: 5px; border-radius: 50%; background: #31884f; box-shadow: 0 0 0 1px rgba(255,255,255,.85); }
-    .piece.known::after { content: ""; position: absolute; z-index: 3; top: 2px; right: 2px; width: 17px; height: 11px; border: 2px solid #4caa6c; border-radius: 70% 18%; background: #ecf9ee; box-shadow: 0 2px 5px rgba(35,95,55,.18); transform: rotate(-12deg); }
+    .piece.known::before { display: none; }
+    .piece.known::after { content: "👁️"; position: absolute; z-index: 4; top: -5px; right: -5px; width: auto; height: auto; border: 0; background: transparent; box-shadow: none; font-size: 17px; line-height: 1; transform: rotate(-8deg); }
     .owner-marker { position: absolute; z-index: 3; right: 50%; bottom: -6px; width: 52%; min-width: 26px; max-width: 56px; height: 5px; padding: 0; display: block; border: 0; border-radius: 99px; color: transparent; font-size: 0; line-height: 0; box-shadow: 0 2px 5px rgba(20,35,53,.22); transform: translateX(50%); }
     .owner-p1 .owner-marker { background: var(--blue); }
     .owner-p2 .owner-marker { background: var(--coral); }
