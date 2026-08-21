@@ -41,7 +41,7 @@ Enemy pieces remain hidden until combat reveals them. A revealed enemy that surv
 - During deployment, tap empty home squares to place the next piece in order. You can still use the tray for swapping, plus **Randomize** and **Reset** to arrange your formation.
 - Use **Rules** to review the rules and **New game** to restart.
 
-In computer mode, Player 2 deploys privately and shows a short thinking screen before each move. The computer uses a lightweight strategy that prioritizes winning attacks, Flag threats, and forward movement.
+In computer mode, Player 2 deploys privately and shows a short thinking screen before each move. The computer uses a lightweight strategy that prioritizes attacks, winning attacks, Flag threats, and forward movement. It will take a chance on hidden enemy pieces rather than always walking past them.
 
 ## Project structure
 

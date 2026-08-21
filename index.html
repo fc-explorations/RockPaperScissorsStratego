@@ -743,7 +743,7 @@
           else if (move.piece.type === target.type) score += 45;
           else score -= 720;
         } else {
-          score += 85;
+          score += 500;
         }
       } else {
         score += move.row * 32;
@@ -759,7 +759,16 @@
         .filter(piece => piece.type !== "flag")
         .flatMap(piece => getLegalMoves(piece).map(destination => ({ piece, row: destination.row, col: destination.col })));
       if (!moves.length) return null;
-      return moves.reduce((best, move) => computerMoveScore(move) > computerMoveScore(best) ? move : best, moves[0]);
+      let bestMove = moves[0];
+      let bestScore = computerMoveScore(bestMove);
+      moves.slice(1).forEach(move => {
+        const score = computerMoveScore(move);
+        if (score > bestScore) {
+          bestMove = move;
+          bestScore = score;
+        }
+      });
+      return bestMove;
     }
 
     function runComputerTurn() {
