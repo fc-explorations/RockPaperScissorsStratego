@@ -307,10 +307,10 @@
     .board.combat-board { box-shadow: inset 0 0 0 4px rgba(232,177,93,.45); }
     .cell.combat-attacker, .cell.combat-defender { z-index: 2; box-shadow: inset 0 0 0 4px rgba(232,177,93,.9), 0 0 22px rgba(232,177,93,.34); }
     .board.combat-board .cell.combat-attacker { z-index: 20; }
-    .board.combat-board .cell.combat-attacker.combat-winner, .board.combat-board .cell.combat-draw { z-index: 30; }
+    .board.combat-board .cell.combat-attacker.combat-winner, .board.combat-board .cell.combat-defender.combat-winner, .board.combat-board .cell.combat-draw { z-index: 30; }
     .cell.move-arrival-cell { z-index: 15; }
     .cell.combat-attacker .piece, .cell.combat-defender .piece { z-index: 5; }
-    .cell.combat-attacker.combat-winner .piece { animation: board-combat-winner 1.25s .55s cubic-bezier(.2,.8,.3,1) both; }
+    .cell.combat-attacker.combat-winner .piece, .cell.combat-defender.combat-winner .piece { animation: board-combat-winner 1.25s .55s cubic-bezier(.2,.8,.3,1) both; }
     .cell.combat-loser .piece { animation: combat-loser-vanish .65s 1s ease-in both; }
     .piece.move-arrival { animation: piece-arrival .55s cubic-bezier(.2,.8,.3,1) both; }
     .piece.reveal-turn::before { content: "?"; position: absolute; z-index: 4; inset: 12.5%; display: grid; place-items: center; border: 2px solid #8999ad; border-radius: 11px; color: white; background: repeating-linear-gradient(135deg, #435770 0, #435770 5px, #526780 5px, #526780 10px); box-shadow: 0 4px 9px rgba(20,35,53,.13), inset 0 1px rgba(255,255,255,.18); font-size: clamp(24px, 4vw, 34px); line-height: 1; animation: reveal-card-turn .58s ease-in-out both; }
@@ -723,7 +723,7 @@
       attacker.revealedTo[1] = true; attacker.revealedTo[2] = true;
       defender.revealedTo[1] = true; defender.revealedTo[2] = true;
       const outcome = defender.type === "flag" ? "capture" : attacker.type === defender.type ? "draw" : beats[attacker.type] === defender.type ? "attacker" : "defender";
-      state.combat = { attackerId: attacker.id, defenderId: defender.id, row, col, outcome, revealAttacker, revealDefender };
+      state.combat = { attackerId: attacker.id, defenderId: defender.id, row, col, fromRow: attacker.row, fromCol: attacker.col, outcome, revealAttacker, revealDefender };
       state.phase = "combat";
       state.message = `Combat: ${typeName(attacker.type)} versus ${typeName(defender.type)}.`;
       render();
@@ -731,7 +731,7 @@
         computerCombatTimer = setTimeout(() => {
           computerCombatTimer = null;
           if (state.phase === "combat") resolveCombat();
-        }, state.combat.outcome === "attacker" || state.combat.outcome === "capture" ? 1950 : state.combat.outcome === "defender" ? 1750 : 1400);
+        }, state.combat.outcome === "attacker" || state.combat.outcome === "capture" || state.combat.outcome === "defender" ? 1950 : 1400);
       }
     }
 
@@ -777,6 +777,7 @@
       } else {
         attacker.alive = false;
         attacker.row = attacker.col = null;
+        defender.row = combat.fromRow; defender.col = combat.fromCol;
         state.lastCombatWinnerId = defender.id;
         addHistory(`P${defender.owner}'s ${typeName(defender.type)} defeated ${typeName(attacker.type)}.`);
         state.combat = null;
@@ -911,6 +912,7 @@
           combatStyle = ` style="--combat-x:${state.combat.col - piece.col};--combat-y:${state.combat.row - piece.row};"`;
         } else if (state.combat.outcome === "defender" && piece.id === state.combat.defenderId) {
           combatClass = " combat-winner";
+          combatStyle = ` style="--combat-x:${state.combat.fromCol - piece.col};--combat-y:${state.combat.fromRow - piece.row};"`;
         } else {
           combatClass = " combat-loser";
         }
