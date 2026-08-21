@@ -425,6 +425,11 @@
     function handleTrayClick(id) {
       if (state.phase !== "deploy" || !selectablePlacementPiece(id)) return;
       const piece = pieceById(id);
+      if (piece.type === null) {
+        state.message = "Choose your secret extra piece before placing it.";
+        render();
+        return;
+      }
       if (piece.row !== null) {
         state.placementSelectedId = id;
         state.message = `${typeName(piece.type)} selected. Tap another home square to move or swap it.`;
@@ -448,6 +453,11 @@
         if (!target) {
           const nextPiece = nextUnplacedPiece(owner);
           if (nextPiece) {
+            if (nextPiece.type === null) {
+              state.message = "Choose your secret extra piece before placing the final piece.";
+              render();
+              return;
+            }
             nextPiece.row = row;
             nextPiece.col = col;
             state.message = `${typeName(nextPiece.type)} placed. Tap another empty home square for the next piece.`;
@@ -463,6 +473,11 @@
         return;
       }
       if (target && target.owner !== owner) return;
+      if (selected.type === null) {
+        state.message = "Choose your secret extra piece before placing it.";
+        render();
+        return;
+      }
       if (target && target.id === selected.id) {
         state.placementSelectedId = null;
         state.message = "Selection cleared.";
