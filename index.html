@@ -81,6 +81,23 @@
     .top-actions button:hover, .link-button:hover { background: rgba(255,255,255,.16); transform: translateY(-1px); }
     .top-actions .new-button { color: var(--navy); border-color: #e8b15d; background: #e8b15d; font-weight: 800; }
     .top-actions .new-button:hover { background: #f3c475; }
+    .top-actions .icon-button {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      color: #f4f7fb;
+      background: transparent;
+      font-size: 24px;
+      line-height: 1;
+    }
+    .top-actions .icon-button:hover {
+      color: #edb45a;
+      background: transparent;
+      transform: translateY(-1px);
+    }
+    .top-actions .icon-button span { display: block; }
 
     .game-layout {
       width: min(1420px, 100%);
@@ -493,7 +510,7 @@
         extra.variant = variantForPiece(owner, extraType, 8);
       }
       const flag = piecesOf(owner).find(piece => piece.type === "flag");
-      const backRow = ownRows(owner)[0];
+      const backRow = owner === 1 ? ownRows(owner)[1] : ownRows(owner)[0];
       const flagCol = Math.floor(Math.random() * BOARD_COLS);
       flag.row = backRow;
       flag.col = flagCol;
@@ -726,6 +743,20 @@
     function computerMoveScore(move) {
       const target = pieceAt(move.row, move.col);
       let score = Math.random() * 18;
+      if (move.piece.type === "flag") {
+        const enemyMobilePieces = alivePiecesOf(1).filter(piece => piece.type !== "flag");
+        const isAdjacent = piece => Math.abs(piece.row - move.piece.row) + Math.abs(piece.col - move.piece.col) === 1;
+        const destinationThreatened = enemyMobilePieces.some(piece => Math.abs(piece.row - move.row) + Math.abs(piece.col - move.col) === 1);
+        const currentlyThreatened = enemyMobilePieces.some(isAdjacent);
+        const nearestEnemyDistance = enemyMobilePieces.length
+          ? Math.min(...enemyMobilePieces.map(piece => Math.abs(piece.row - move.row) + Math.abs(piece.col - move.col)))
+          : BOARD_ROWS + BOARD_COLS;
+        if (currentlyThreatened) score += 780;
+        if (destinationThreatened) score -= 620;
+        score += Math.min(nearestEnemyDistance, 6) * 55;
+        score += Math.random() * 160;
+        return score;
+      }
       if (target) {
         if (target.revealedTo[state.aiPlayer]) {
           if (target.type === "flag") return 10000;
@@ -922,7 +953,7 @@
       app.innerHTML = `
         <header class="topbar">
           <div class="brand"><div class="brand-mark" aria-hidden="true"><span>RPS</span></div><div class="brand-copy"><p class="eyebrow">Pass &amp; play tactics</p><h1>Rock Paper Scissors <span>Stratego</span></h1></div></div>
-          <nav class="top-actions" aria-label="Game controls"><button class="rules-button" data-action="rules">Rules</button><button class="new-button" data-action="new">New game</button></nav>
+          <nav class="top-actions" aria-label="Game controls"><button class="icon-button rules-button" data-action="rules" aria-label="Rules" title="Rules"><span aria-hidden="true">?</span></button><button class="icon-button new-button" data-action="new" aria-label="New game" title="New game"><span aria-hidden="true">↻</span></button></nav>
         </header>
         <main class="game-layout">
           <section class="board-column" aria-label="Game board"><div class="board-frame"><div class="board ${state.phase === "combat" ? "combat-board" : ""}" role="grid" aria-label="4 by 6 Rock Paper Scissors Stratego board">${renderBoard(viewer, state.phase === "combat" ? "combat-board" : "board")}${state.phase === "combat" && state.gameMode === "computer" ? renderBoardBurst() : ""}</div></div></section>
