@@ -2,7 +2,7 @@
 
 Play the live game: **[fc-explorations.github.io/RockPaperScissorsStratego](https://fc-explorations.github.io/RockPaperScissorsStratego/)**
 
-Rock Paper Scissors Stratego is a local two-player, pass-and-play strategy game inspired by Stratego. You can play against another person or choose **Play vs computer** to let the computer control Player 2. Each player secretly deploys an army of Rock, Paper, Scissors, and one Flag, then tries to capture the opponent's Flag without exposing their own formation.
+Rock Paper Scissors Stratego is a local two-player, pass-and-play strategy game inspired by Stratego. You can play against another person or choose **Play vs computer** to let the computer control Player 2. Each player starts with a random army of Rock, Paper, Scissors, and one Flag, then tries to capture the opponent's Flag without exposing their own formation.
 
 ## Play locally
 
@@ -20,10 +20,10 @@ No build step or dependencies are required.
 ## How to play
 
 1. Choose **Pass & play** or **Play vs computer**.
-2. Player 1 chooses a secret extra Rock, Paper, or Scissors and deploys all eight pieces in the bottom two rows.
-3. In pass-and-play, pass the device to Player 2, who privately chooses their extra piece and deploys their army. In computer mode, Player 2 is deployed automatically in private.
-4. Players alternate turns. Rock, Paper, and Scissors move one square horizontally or vertically. The Flag cannot move.
-5. Moving onto an enemy piece starts combat:
+2. Both armies are placed randomly in their home rows, including a random extra Rock, Paper, or Scissors. Each Flag starts protected on the back line.
+3. Before the opening move, select two friendly pieces in succession to swap them. Select a piece and an empty adjacent square to make the opening move and start the game.
+4. Players alternate turns. Every piece moves one square horizontally or vertically. Flags can move but cannot attack.
+5. Moving a non-Flag piece onto an enemy piece starts combat:
    - Rock defeats Scissors.
    - Scissors defeats Paper.
    - Paper defeats Rock.
@@ -38,10 +38,10 @@ Enemy pieces remain hidden until combat reveals them. A revealed enemy that surv
 
 - Click or tap a piece to select it.
 - Click or tap a highlighted square to move or attack.
-- During deployment, tap empty home squares to place the next piece in order. You can still use the tray for swapping, plus **Randomize** and **Reset** to arrange your formation.
+- Before the opening move, tap two friendly pieces in succession to swap them, or move a piece to an empty adjacent square to start the game.
 - Use **Rules** to review the rules and **New game** to restart.
 
-In computer mode, Player 2 deploys privately and takes a brief pause before each move. Battles resolve directly on the main board: both combatants are revealed, animated, and resolved automatically. The computer uses a lightweight strategy that prioritizes attacks, winning attacks, Flag threats, and forward movement. It will take a chance on hidden enemy pieces rather than always walking past them.
+In computer mode, Player 2's random formation stays hidden and takes a brief pause before each move. Battles resolve directly on the main board: both combatants are revealed, animated, and resolved automatically. The computer uses a lightweight strategy that prioritizes attacks, winning attacks, Flag threats, and forward movement. It will take a chance on hidden enemy pieces rather than always walking past them.
 
 ## Project structure
 
