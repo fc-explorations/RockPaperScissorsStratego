@@ -776,9 +776,19 @@
     }
 
     function chooseComputerMove() {
-      const moves = alivePiecesOf(state.aiPlayer)
+      let moves = alivePiecesOf(state.aiPlayer)
         .flatMap(piece => getLegalMoves(piece).map(destination => ({ piece, row: destination.row, col: destination.col })));
       if (!moves.length) return null;
+      const flag = alivePiecesOf(state.aiPlayer).find(piece => piece.type === "flag");
+      const enemyMobilePieces = alivePiecesOf(opponent(state.aiPlayer)).filter(piece => piece.type !== "flag");
+      const flagThreatened = flag && enemyMobilePieces.some(piece => Math.abs(piece.row - flag.row) + Math.abs(piece.col - flag.col) === 1);
+      const flagMoves = moves.filter(move => move.piece.type === "flag");
+      const nonFlagMoves = moves.filter(move => move.piece.type !== "flag");
+      if (flagMoves.length && nonFlagMoves.length && !flagThreatened) {
+        moves = Math.random() < 0.05 ? flagMoves : nonFlagMoves;
+      } else if (nonFlagMoves.length && !flagMoves.length) {
+        moves = nonFlagMoves;
+      }
       let bestMove = moves[0];
       let bestScore = computerMoveScore(bestMove);
       moves.slice(1).forEach(move => {
