@@ -182,6 +182,8 @@
     .cell.selected { background: #dcecff; box-shadow: inset 0 0 0 3px var(--blue); z-index: 1; }
     .cell.legal-move { background: #e3f2e5; box-shadow: inset 0 0 0 3px #65ae73; }
     .cell.legal-attack { background: #fff0d5; box-shadow: inset 0 0 0 3px var(--gold); }
+    .cell.rubble, .cell.rubble:hover { background: linear-gradient(135deg, #c6c6c0, #e1ded4); cursor: not-allowed; box-shadow: inset 0 0 0 2px rgba(86,85,77,.28); }
+    .rubble-art { position: relative; z-index: 1; width: 94%; height: 94%; object-fit: contain; filter: drop-shadow(0 5px 4px rgba(20,35,53,.25)); pointer-events: none; }
     .cell.selected::before { content: "SELECTED"; position: absolute; top: 5px; left: 7px; color: var(--blue); font-size: 7px; font-weight: 900; letter-spacing: .1em; }
     .piece {
       position: relative;
@@ -465,6 +467,7 @@
         extraChoice: { 1: null, 2: null },
         pieces: [],
         combat: null,
+        rubbleCells: [],
         moveAnimation: null,
         winner: null,
         turnNumber: 1,
@@ -486,6 +489,9 @@
     function alivePiecesOf(owner) { return piecesOf(owner).filter(piece => piece.alive); }
     function isInside(row, col) { return row >= 0 && row < BOARD_ROWS && col >= 0 && col < BOARD_COLS; }
     function pieceAt(row, col) { return state.pieces.find(piece => piece.alive && piece.row === row && piece.col === col); }
+    function rubbleKey(row, col) { return `${row}-${col}`; }
+    function isRubbleCell(row, col) { return state.rubbleCells.includes(rubbleKey(row, col)); }
+    function addRubble(row, col) { if (!isRubbleCell(row, col)) state.rubbleCells.push(rubbleKey(row, col)); }
     function ownRows(owner) { return owner === 1 ? [4, 5] : [0, 1]; }
     function isHomeSquare(owner, row) { return ownRows(owner).includes(row); }
     function typeName(type) { return TYPE_META[type]?.name || "Unknown"; }
@@ -551,6 +557,7 @@
       const destinations = [[piece.row - 1, piece.col], [piece.row + 1, piece.col], [piece.row, piece.col - 1], [piece.row, piece.col + 1]];
       return destinations.filter(([row, col]) => {
         if (!isInside(row, col)) return false;
+        if (isRubbleCell(row, col)) return false;
         const target = pieceAt(row, col);
         return !target || (target.owner !== piece.owner && piece.type !== "flag");
       }).map(([row, col]) => ({ row, col, attack: Boolean(pieceAt(row, col)) && piece.type !== "flag" }));
@@ -612,6 +619,11 @@
     }
 
     function handlePlayingCell(row, col) {
+      if (isRubbleCell(row, col)) {
+        state.message = "That cell is blocked by rubble for the rest of the game.";
+        render();
+        return;
+      }
       const target = pieceAt(row, col);
       if (target && target.owner === state.currentPlayer) {
         selectPiece(target.id);
@@ -698,8 +710,9 @@
       } else if (combat.outcome === "draw") {
         attacker.alive = false; defender.alive = false;
         attacker.row = attacker.col = defender.row = defender.col = null;
+        addRubble(combat.row, combat.col);
         state.lastCombatWinnerId = null;
-        addHistory(`${typeName(attacker.type)} met ${typeName(defender.type)} — both removed.`);
+        addHistory(`${typeName(attacker.type)} met ${typeName(defender.type)} — rubble now blocks this cell.`);
         state.combat = null;
         if (!checkArmyVictory()) endTurn();
       } else if (combat.outcome === "attacker") {
@@ -910,6 +923,8 @@
       rows.forEach(row => cols.forEach(col => {
         const piece = pieceAt(row, col);
         const classes = ["cell"];
+        const rubble = isRubbleCell(row, col);
+        if (rubble) classes.push("rubble");
         if (isHomeSquare(1, row)) classes.push("zone-p1");
         if (isHomeSquare(2, row)) classes.push("zone-p2");
         if (isHomeSquare(viewer, row)) classes.push("own-zone");
@@ -926,8 +941,9 @@
           else classes.push("combat-loser");
         }
         if (piece && state.moveAnimation?.pieceId === piece.id && context === "board") classes.push("move-arrival-cell");
-        const label = piece ? `${hiddenPieceLabel(piece, viewer, context)} at row ${row + 1}, column ${col + 1}` : `Empty square at row ${row + 1}, column ${col + 1}`;
-        html += `<button class="${classes.join(" ")}" data-row="${row}" data-col="${col}" aria-label="${label}">${piece ? renderPiece(piece, viewer, context) : ""}</button>`;
+        const label = rubble ? `Forbidden rubble cell at row ${row + 1}, column ${col + 1}` : piece ? `${hiddenPieceLabel(piece, viewer, context)} at row ${row + 1}, column ${col + 1}` : `Empty square at row ${row + 1}, column ${col + 1}`;
+        const contents = rubble ? `<img class="rubble-art" src="assets/forbidden-rubble.png" alt="">` : piece ? renderPiece(piece, viewer, context) : "";
+        html += `<button class="${classes.join(" ")}" data-row="${row}" data-col="${col}" aria-label="${label}">${contents}</button>`;
       }));
       return html;
     }
@@ -994,7 +1010,7 @@
       let title = "Combat resolved";
       let result = "";
       if (state.combat.outcome === "capture") { title = "Flag captured"; result = `${typeName(attacker.type)} captures the Flag`; }
-      else if (state.combat.outcome === "draw") { title = "Both pieces removed"; result = `${typeName(attacker.type)} meets ${typeName(defender.type)}`; }
+      else if (state.combat.outcome === "draw") { title = "Rubble formed"; result = `${typeName(attacker.type)} meets ${typeName(defender.type)} — this cell is forbidden for the rest of the game`; }
       else if (state.combat.outcome === "attacker") { title = `${typeName(attacker.type)} wins`; result = `${typeName(attacker.type)} defeats ${typeName(defender.type)}`; }
       else { title = `${typeName(defender.type)} wins`; result = `${typeName(defender.type)} defeats ${typeName(attacker.type)}`; }
       return { attacker, defender, title, result };
@@ -1014,7 +1030,7 @@
     }
 
     function renderRulesModal() {
-      return `<div class="modal-backdrop" data-action="close-rules"><section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" onclick="event.stopPropagation()"><div class="modal-heading"><div><p class="panel-label">How to play</p><h2 id="rules-title">Rules of the arena</h2></div><button class="close-button" data-action="close-rules" aria-label="Close rules">×</button></div><h3>Goal</h3><p>Capture the opponent's Flag. Player 1 moves first.</p><h3>Army</h3><ul><li>2 Rock, 2 Paper, 2 Scissors, and 1 Flag.</li><li>1 secret extra Rock, Paper, or Scissors, selected at random.</li></ul><h3>Setup</h3><p>Both armies begin in random home-row formations with their Flags protected on the back line. Before the opening move, select two friendly pieces in succession to swap them. Selecting an empty adjacent square makes the opening move and starts the game.</p><h3>Movement</h3><p>Move any piece one square orthogonally. Pieces cannot move diagonally, jump, or land on a friendly piece. Flags can move but cannot attack.</p><h3>Combat</h3><ul><li>Rock beats Scissors.</li><li>Scissors beats Paper.</li><li>Paper beats Rock.</li><li>Matching pieces remove each other.</li><li>Any non-Flag piece captures the Flag immediately.</li><li>An army reduced to only its Flag loses immediately.</li></ul><h3>Hidden information</h3><p>Enemy pieces are hidden until combat reveals them. A revealed enemy that survives stays known for the rest of the game. Keep the screen covered during each pass-device handoff.</p></section></div>`;
+      return `<div class="modal-backdrop" data-action="close-rules"><section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" onclick="event.stopPropagation()"><div class="modal-heading"><div><p class="panel-label">How to play</p><h2 id="rules-title">Rules of the arena</h2></div><button class="close-button" data-action="close-rules" aria-label="Close rules">×</button></div><h3>Goal</h3><p>Capture the opponent's Flag. Player 1 moves first.</p><h3>Army</h3><ul><li>2 Rock, 2 Paper, 2 Scissors, and 1 Flag.</li><li>1 secret extra Rock, Paper, or Scissors, selected at random.</li></ul><h3>Setup</h3><p>Both armies begin in random home-row formations with their Flags protected on the back line. Before the opening move, select two friendly pieces in succession to swap them. Selecting an empty adjacent square makes the opening move and starts the game.</p><h3>Movement</h3><p>Move any piece one square orthogonally. Pieces cannot move diagonally, jump, land on a friendly piece, or enter a rubble cell. Flags can move but cannot attack.</p><h3>Combat</h3><ul><li>Rock beats Scissors.</li><li>Scissors beats Paper.</li><li>Paper beats Rock.</li><li>Matching pieces become rubble, and their cell is forbidden for the rest of the game.</li><li>Any non-Flag piece captures the Flag immediately.</li><li>An army reduced to only its Flag loses immediately.</li></ul><h3>Hidden information</h3><p>Enemy pieces are hidden until combat reveals them. A revealed enemy that survives stays known for the rest of the game. Keep the screen covered during each pass-device handoff.</p></section></div>`;
     }
 
     function bindEvents() {
