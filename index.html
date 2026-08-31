@@ -190,14 +190,17 @@
     .cell.legal-attack { background: #fff0d5; box-shadow: inset 0 0 0 3px var(--gold); }
     .cell.rubble, .cell.rubble:hover { background: linear-gradient(135deg, #c6c6c0, #e1ded4); cursor: not-allowed; box-shadow: inset 0 0 0 2px rgba(86,85,77,.28); }
     .rubble-art { position: relative; z-index: 1; width: 94%; height: 94%; object-fit: contain; filter: drop-shadow(0 8px 6px rgba(20,35,53,.3)); pointer-events: none; }
-    .cell.high-ground { overflow: visible; border: 0; border-radius: 0; }
+    .cell.high-ground { overflow: hidden; border: 0; border-radius: 0; }
     .cell.terrain-cell { cursor: pointer; }
     .cell.terrain-cell:hover { box-shadow: inset 0 0 0 3px rgba(216,157,53,.54); }
     .high-ground-art { display: none; }
-    .terrain-layer { position: absolute; z-index: 1; inset: 0; overflow: hidden; pointer-events: none; }
-    .terrain-layer svg { display: block; width: 100%; height: 100%; overflow: visible; }
-    .terrain-edge-shadow { fill: none; stroke: #49351f; stroke-width: 10; stroke-linecap: round; opacity: .7; }
-    .terrain-edge-highlight { fill: none; stroke: #c2d56d; stroke-width: 3; stroke-linecap: round; opacity: .72; }
+    .terrain-fill { position: absolute; z-index: 0; inset: 0; border-radius: var(--terrain-radius); background-image: url("assets/high-ground-1111.png"); background-position: var(--terrain-x) var(--terrain-y); background-repeat: no-repeat; background-size: 400% 600%; pointer-events: none; }
+    .terrain-fill .terrain-edge { position: absolute; z-index: 1; pointer-events: none; opacity: .9; }
+    .terrain-fill .terrain-edge-n { top: 0; right: 0; left: 0; height: 13px; border-top: 1px solid rgba(255,244,214,.44); background: linear-gradient(to bottom, rgba(44,39,31,.58), transparent); }
+    .terrain-fill .terrain-edge-e { top: 0; right: 0; bottom: 0; width: 13px; border-right: 1px solid rgba(255,244,214,.44); background: linear-gradient(to left, rgba(44,39,31,.58), transparent); }
+    .terrain-fill .terrain-edge-s { right: 0; bottom: 0; left: 0; height: 13px; border-bottom: 1px solid rgba(255,244,214,.44); background: linear-gradient(to top, rgba(44,39,31,.58), transparent); }
+    .terrain-fill .terrain-edge-w { top: 0; bottom: 0; left: 0; width: 13px; border-left: 1px solid rgba(255,244,214,.44); background: linear-gradient(to right, rgba(44,39,31,.58), transparent); }
+    .piece { z-index: 2; }
     .cell.selected::before { content: "SELECTED"; position: absolute; top: 5px; left: 7px; color: var(--blue); font-size: 7px; font-weight: 900; letter-spacing: .1em; }
     .piece {
       position: relative;
@@ -706,7 +709,13 @@
     function terrainMarkup(row, col) {
       if (!isHighGroundCell(row, col)) return "";
       const { asset, rotation } = highGroundAsset(row, col);
-      return `<img class="high-ground-art" src="assets/${asset}" alt="" style="--terrain-rotation:${rotation}deg">`;
+      const mask = terrainMask(row, col);
+      const { tl, tr, br, bl } = terrainCornerRadii(mask);
+      const exposedEdges = [[1, "n"], [2, "e"], [4, "s"], [8, "w"]]
+        .filter(([bit]) => !(mask & bit))
+        .map(([, edge]) => `<span class="terrain-edge terrain-edge-${edge}" aria-hidden="true"></span>`)
+        .join("");
+      return `<span class="terrain-fill" style="--terrain-x:${(col / (BOARD_COLS - 1)) * 100}%;--terrain-y:${(row / (BOARD_ROWS - 1)) * 100}%;--terrain-radius:${tl}px ${tr}px ${br}px ${bl}px"><img class="high-ground-art" src="assets/${asset}" alt="" style="--terrain-rotation:${rotation}deg">${exposedEdges}</span>`;
     }
 
     function hypotheticalTerrain(row, col) {
@@ -1158,38 +1167,6 @@
       };
     }
 
-    function terrainTilePath(row, col, mask) {
-      const x = col * 100;
-      const y = row * 100;
-      const { tl, tr, br, bl } = terrainCornerRadii(mask);
-      return `M ${x + tl} ${y} H ${x + 100 - tr} Q ${x + 100} ${y} ${x + 100} ${y + tr} V ${y + 100 - br} Q ${x + 100} ${y + 100} ${x + 100 - br} ${y + 100} H ${x + bl} Q ${x} ${y + 100} ${x} ${y + 100 - bl} V ${y + tl} Q ${x} ${y} ${x + tl} ${y} Z`;
-    }
-
-    function terrainEdgePaths(row, col, mask) {
-      const x = col * 100;
-      const y = row * 100;
-      const { tl, tr, br, bl } = terrainCornerRadii(mask);
-      const paths = [];
-      if (!(mask & 1)) paths.push(`M ${x + tl} ${y} H ${x + 100 - tr}`);
-      if (!(mask & 2)) paths.push(`M ${x + 100} ${y + tr} V ${y + 100 - br}`);
-      if (!(mask & 4)) paths.push(`M ${x + 100 - br} ${y + 100} H ${x + bl}`);
-      if (!(mask & 8)) paths.push(`M ${x} ${y + 100 - bl} V ${y + tl}`);
-      return paths;
-    }
-
-    function renderTerrainLayer() {
-      if (!state.highGroundCells.length) return "";
-      const tilePaths = [];
-      const edgePaths = [];
-      state.highGroundCells.forEach(key => {
-        const [row, col] = key.split("-").map(Number);
-        const mask = terrainMask(row, col);
-        tilePaths.push(`<path d="${terrainTilePath(row, col, mask)}"></path>`);
-        terrainEdgePaths(row, col, mask).forEach(path => edgePaths.push(`<path d="${path}"></path>`));
-      });
-      return `<div class="terrain-layer" aria-hidden="true"><svg viewBox="0 0 400 600" preserveAspectRatio="none"><defs><clipPath id="terrain-shape" clipPathUnits="userSpaceOnUse">${tilePaths.join("")}</clipPath></defs><image href="assets/high-ground-1111.png" x="0" y="0" width="400" height="600" preserveAspectRatio="none" clip-path="url(#terrain-shape)"></image><g class="terrain-edge-shadow">${edgePaths.join("")}</g><g class="terrain-edge-highlight" transform="translate(0 -2)">${edgePaths.join("")}</g></svg></div>`;
-    }
-
     function renderBoard(viewer, context = "board") {
       const { rows, cols } = displayCoordinates(viewer);
       const selected = state.selectedId ? pieceById(state.selectedId) : null;
@@ -1272,7 +1249,7 @@
           <nav class="top-actions" aria-label="Game controls"><button class="icon-button rules-button" data-action="rules" aria-label="Rules" title="Rules"><span aria-hidden="true">?</span></button><button class="icon-button new-button" data-action="new" aria-label="New game" title="New game"><span aria-hidden="true">↻</span></button></nav>
         </header>
         <main class="game-layout">
-          <section class="board-column" aria-label="Game board"><div class="board-frame"><div class="board ${state.phase === "combat" ? "combat-board" : ""}${captureCombat ? " capture-board" : ""}" role="grid" aria-label="4 by 6 Rock Paper Scissors Stratego board">${renderTerrainLayer()}${renderBoard(viewer, state.phase === "combat" ? "combat-board" : "board")}${state.phase === "combat" && state.gameMode === "computer" ? renderBoardBurst() : ""}</div></div></section>
+          <section class="board-column" aria-label="Game board"><div class="board-frame"><div class="board ${state.phase === "combat" ? "combat-board" : ""}${captureCombat ? " capture-board" : ""}" role="grid" aria-label="4 by 6 Rock Paper Scissors Stratego board">${renderBoard(viewer, state.phase === "combat" ? "combat-board" : "board")}${state.phase === "combat" && state.gameMode === "computer" ? renderBoardBurst() : ""}</div></div></section>
         </main>
         ${renderOverlay()}
         ${state.phase === "combat" && state.gameMode !== "computer" ? renderCombatModal() : ""}
