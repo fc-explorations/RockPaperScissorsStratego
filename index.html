@@ -68,6 +68,7 @@
     .eyebrow { margin: 0 0 4px; color: #a8b8cb; font-size: 10px; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
     h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(16px, 2.2vw, 23px); line-height: 1; letter-spacing: -.035em; white-space: nowrap; }
     h1 span { color: #edb45a; }
+    .phase-line { margin: 6px 0 0; max-width: min(720px, 62vw); color: #bdcad9; font-size: 11px; line-height: 1.35; }
     .top-actions { display: flex; align-items: center; gap: 9px; }
     .top-actions button, .link-button {
       border: 1px solid rgba(255,255,255,.2);
@@ -148,6 +149,10 @@
     .board-heading { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin: 0 4px 13px; }
     .board-heading h2 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(20px, 3vw, 29px); letter-spacing: -.045em; }
     .board-heading p { margin: 0; color: var(--muted); font-size: 12px; text-align: right; }
+    .phase-banner { margin: 0 0 13px; padding: 14px 17px; border: 1px solid rgba(216,157,53,.45); border-radius: 14px; background: linear-gradient(135deg, #fff5dd, #f3eee3); box-shadow: 0 7px 18px rgba(25,40,61,.06), inset 0 1px rgba(255,255,255,.8); }
+    .phase-banner .panel-label { margin-bottom: 5px; color: #9b6d22; }
+    .phase-banner h2 { margin: 0; color: var(--ink); font-family: Georgia, "Times New Roman", serif; font-size: clamp(19px, 3vw, 25px); letter-spacing: -.04em; }
+    .phase-banner p:last-child { margin: 5px 0 0; color: #6d6f6a; font-size: 12px; line-height: 1.45; }
     .board-frame { padding: 12px; border: 1px solid rgba(216,157,53,.45); border-radius: 23px; background: linear-gradient(145deg, #0d1b2f, #1c3553); box-shadow: 0 18px 48px rgba(25,40,61,.16), inset 0 1px rgba(255,255,255,.18); }
     .board {
       position: relative;
@@ -162,6 +167,7 @@
     }
     .cell {
       position: relative;
+      z-index: 2;
       min-width: 0;
       min-height: 0;
       border: 1px solid var(--grid);
@@ -183,7 +189,15 @@
     .cell.legal-move { background: #e3f2e5; box-shadow: inset 0 0 0 3px #65ae73; }
     .cell.legal-attack { background: #fff0d5; box-shadow: inset 0 0 0 3px var(--gold); }
     .cell.rubble, .cell.rubble:hover { background: linear-gradient(135deg, #c6c6c0, #e1ded4); cursor: not-allowed; box-shadow: inset 0 0 0 2px rgba(86,85,77,.28); }
-    .rubble-art { position: relative; z-index: 1; width: 94%; height: 94%; object-fit: contain; filter: drop-shadow(0 5px 4px rgba(20,35,53,.25)); pointer-events: none; }
+    .rubble-art { position: relative; z-index: 1; width: 94%; height: 94%; object-fit: contain; filter: drop-shadow(0 8px 6px rgba(20,35,53,.3)); pointer-events: none; }
+    .cell.high-ground { overflow: visible; border: 0; border-radius: 0; }
+    .cell.terrain-cell { cursor: pointer; }
+    .cell.terrain-cell:hover { box-shadow: inset 0 0 0 3px rgba(216,157,53,.54); }
+    .high-ground-art { display: none; }
+    .terrain-layer { position: absolute; z-index: 1; inset: 0; overflow: hidden; pointer-events: none; }
+    .terrain-layer svg { display: block; width: 100%; height: 100%; overflow: visible; }
+    .terrain-edge-shadow { fill: none; stroke: #49351f; stroke-width: 10; stroke-linecap: round; opacity: .7; }
+    .terrain-edge-highlight { fill: none; stroke: #c2d56d; stroke-width: 3; stroke-linecap: round; opacity: .72; }
     .cell.selected::before { content: "SELECTED"; position: absolute; top: 5px; left: 7px; color: var(--blue); font-size: 7px; font-weight: 900; letter-spacing: .1em; }
     .piece {
       position: relative;
@@ -206,7 +220,7 @@
     }
     .piece::before { display: none; }
     .piece-glyph { position: relative; font-size: clamp(20px, 4vw, 34px); line-height: .85; letter-spacing: -.1em; }
-    .piece-art { position: relative; z-index: 1; width: 98%; height: 94%; object-fit: contain; filter: drop-shadow(0 5px 4px rgba(20,35,53,.23)); }
+    .piece-art { position: relative; z-index: 1; width: 98%; height: 94%; object-fit: contain; filter: drop-shadow(0 8px 6px rgba(20,35,53,.3)); }
     .piece-label { position: relative; font-size: clamp(8px, 1vw, 10px); letter-spacing: .12em; }
     .piece:not(.hidden) .piece-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     .piece.hidden {
@@ -222,7 +236,7 @@
     .piece.hidden.owner-p2 { background: repeating-linear-gradient(135deg, #8a4f4c 0, #8a4f4c 5px, #a8665e 5px, #a8665e 10px); }
     .piece.hidden .piece-glyph { font-size: clamp(19px, 3.5vw, 29px); }
     .piece.hidden .piece-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-    .piece.known .piece-art { filter: drop-shadow(0 5px 4px rgba(20,35,53,.23)) drop-shadow(0 0 2px rgba(216,157,53,.75)); }
+    .piece.known .piece-art { filter: drop-shadow(0 8px 6px rgba(20,35,53,.3)) drop-shadow(0 0 2px rgba(216,157,53,.75)); }
     .piece.known::before { display: none; }
     .piece.known::after { content: "👁️"; position: absolute; z-index: 4; top: -5px; right: -5px; width: auto; height: auto; border: 0; background: transparent; box-shadow: none; font-size: 17px; line-height: 1; transform: rotate(-8deg); }
     .piece.setup-selected { transform: translateY(-5px) rotate(-2deg); box-shadow: 0 9px 14px rgba(20,35,53,.2), 0 0 0 3px #e6b258; }
@@ -289,6 +303,14 @@
     @keyframes burst-ray { 0% { opacity: 0; transform: translate(-50%, -100%) rotate(var(--ray-angle)) scaleY(.12); } 35% { opacity: 1; } 100% { opacity: .65; transform: translate(-50%, -100%) rotate(var(--ray-angle)) scaleY(1); } }
     @keyframes burst-orb { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.3); } 45% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: .75; transform: translate(-50%, -50%) scale(.82); } }
     @keyframes burst-fade { 0% { opacity: 0; } 18% { opacity: 1; } 100% { opacity: .92; } }
+    @keyframes capture-board-shake { 0%, 100% { transform: translate(0, 0); } 12% { transform: translate(-3px, 2px); } 25% { transform: translate(4px, -2px); } 38% { transform: translate(-3px, -1px); } 51% { transform: translate(2px, 2px); } 64% { transform: translate(-1px, -1px); } }
+    @keyframes capture-burst-core { 0% { opacity: .4; transform: translate(-50%, -50%) scale(.18); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.28); } 44% { opacity: 1; transform: translate(-50%, -50%) scale(.94); } 100% { opacity: .88; transform: translate(-50%, -50%) scale(1.08); } }
+    @keyframes capture-burst-ray { 0% { opacity: 0; transform: translate(-50%, -100%) rotate(var(--ray-angle)) scaleY(.05); } 22% { opacity: 1; } 48% { opacity: .95; } 100% { opacity: .18; transform: translate(-50%, -100%) rotate(var(--ray-angle)) scaleY(1); } }
+    @keyframes capture-burst-ring { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.2); } 25% { opacity: .95; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35); } }
+    @keyframes capture-burst-shard { 0% { opacity: 0; transform: translate(-50%, -100%) rotate(0deg) scale(.2); } 22% { opacity: 1; } 100% { opacity: .12; transform: translate(-50%, -100%) rotate(var(--shard-angle)) translateY(var(--shard-distance)) scale(.55); } }
+    @keyframes capture-burst-flash { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.2); } 18% { opacity: 1; transform: translate(-50%, -50%) scale(1.5); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(2.4); } }
+    @keyframes capture-flag-reveal { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.2) rotate(-8deg); } 22% { opacity: 1; transform: translate(-50%, -50%) scale(1.12) rotate(2deg); } 54% { opacity: 1; transform: translate(-50%, -50%) scale(.94) rotate(-1deg); } 100% { opacity: .96; transform: translate(-50%, -50%) scale(1) rotate(0deg); } }
+    @keyframes capture-flag-highlight { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.16) rotate(-2deg); } 60% { transform: scale(1.04) rotate(1deg); } }
     @keyframes advance-right { 0% { left: 0; transform: translateX(0); } 55% { left: 50%; transform: translateX(-50%); } 100% { left: 50%; transform: translateX(-50%); } }
     @keyframes advance-left { 0% { right: 0; transform: translateX(0); } 55% { right: 50%; transform: translateX(50%); } 100% { right: 50%; transform: translateX(50%); } }
     @keyframes board-combat-winner { 0% { left: 0; top: 0; } 100% { left: calc(var(--combat-x, 0) * 100%); top: calc(var(--combat-y, 0) * 100%); } }
@@ -334,6 +356,28 @@
     .burst-ray.ray-a { --ray-angle: 0deg; } .burst-ray.ray-b { --ray-angle: 45deg; } .burst-ray.ray-c { --ray-angle: 90deg; } .burst-ray.ray-d { --ray-angle: 135deg; } .burst-ray.ray-e { --ray-angle: 180deg; } .burst-ray.ray-f { --ray-angle: 225deg; } .burst-ray.ray-g { --ray-angle: 270deg; } .burst-ray.ray-h { --ray-angle: 315deg; }
     .burst-orb { position: absolute; width: 10%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff 0 16%, #ffe878 42%, #ee5c2f 72%, rgba(219,49,36,0) 74%); box-shadow: 0 0 10px rgba(255,226,102,.9); animation: burst-orb 1s .14s ease-out both; }
     .burst-orb.orb-a { left: 40%; top: 35%; } .burst-orb.orb-b { left: 58%; top: 42%; } .burst-orb.orb-c { left: 45%; top: 58%; } .burst-orb.orb-d { left: 30%; top: 50%; }
+    .board.capture-board { animation: capture-board-shake 1.25s cubic-bezier(.2,.8,.3,1) both; box-shadow: inset 0 0 0 4px rgba(255,219,115,.82), 0 0 34px rgba(240,123,37,.35); }
+    .battle-burst.capture { width: 185%; height: 185%; animation: burst-fade 1.7s .02s ease-out both; }
+    .battle-burst-overlay.capture { width: 52%; height: 38%; }
+    .battle-burst-modal.capture { width: 68%; height: 135%; }
+    .battle-burst.capture .burst-flash { position: absolute; left: 50%; top: 50%; width: 46%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #fff 0 14%, rgba(255,247,181,.98) 28%, rgba(255,184,45,.55) 52%, rgba(226,60,34,0) 74%); filter: blur(1px); animation: capture-burst-flash .9s .03s ease-out both; }
+    .battle-burst.capture .burst-core { width: 58%; background: radial-gradient(circle, #fff 0 18%, #fff8c8 30%, #ffd23c 48%, #f07827 68%, rgba(214,47,36,0) 76%); box-shadow: 0 0 14px #fffbd2, 0 0 30px rgba(255,190,43,.96), 0 0 58px rgba(226,52,31,.8); animation: capture-burst-core 1.45s .08s ease-out both; }
+    .battle-burst.capture .burst-ray { width: 5px; height: 78%; background: linear-gradient(to top, rgba(255,255,220,1), rgba(255,191,47,.92) 42%, rgba(231,58,32,0)); box-shadow: 0 0 7px rgba(255,190,46,.7); animation: capture-burst-ray 1.35s .06s ease-out both; }
+    .battle-burst.capture .burst-orb { width: 15%; background: radial-gradient(circle at 35% 30%, #fff 0 16%, #fff09a 38%, #ee6d2f 72%, rgba(219,49,36,0) 74%); box-shadow: 0 0 14px rgba(255,226,102,1); animation: burst-orb 1.35s .12s ease-out both; }
+    .burst-ring { position: absolute; left: 50%; top: 50%; width: 35%; aspect-ratio: 1; border: 4px solid rgba(255,237,148,.92); border-radius: 50%; opacity: 0; transform: translate(-50%, -50%) scale(.2); pointer-events: none; }
+    .battle-burst.capture .burst-ring { animation: capture-burst-ring 1.35s .12s ease-out both; }
+    .battle-burst.capture .burst-ring.ring-b { width: 65%; border-width: 3px; animation-delay: .22s; }
+    .burst-shard { position: absolute; left: 50%; top: 50%; width: 10px; height: 25px; border-radius: 35% 65% 45% 55%; background: linear-gradient(145deg, #fff6b4, #ef8c2f 56%, #a82e2a); opacity: 0; pointer-events: none; }
+    .battle-burst.capture .burst-shard { animation: capture-burst-shard 1.4s .1s ease-out both; }
+    .burst-shard.shard-a { --shard-angle: -18deg; --shard-distance: 80px; }
+    .burst-shard.shard-b { --shard-angle: 38deg; --shard-distance: 96px; animation-delay: .16s; }
+    .burst-shard.shard-c { --shard-angle: 92deg; --shard-distance: 72px; animation-delay: .2s; }
+    .burst-shard.shard-d { --shard-angle: 154deg; --shard-distance: 92px; animation-delay: .13s; }
+    .burst-shard.shard-e { --shard-angle: 218deg; --shard-distance: 84px; animation-delay: .24s; }
+    .burst-shard.shard-f { --shard-angle: 286deg; --shard-distance: 104px; animation-delay: .18s; }
+    .capture-flag-art { position: absolute; z-index: 9; left: 50%; top: 50%; width: 30%; max-height: 58%; object-fit: contain; filter: drop-shadow(0 4px 3px rgba(30,22,10,.45)) drop-shadow(0 0 8px rgba(255,229,127,.85)); animation: capture-flag-reveal 1.55s .1s cubic-bezier(.2,.8,.3,1) both; pointer-events: none; }
+    .battle-burst-modal.capture .capture-flag-art { width: 25%; max-height: 64%; }
+    .cell.combat-loser .piece.capture-flag-piece { animation: capture-flag-highlight 1.35s .08s ease-out both; }
     .combat-inline-message { border: 1px solid rgba(216,157,53,.35); background: linear-gradient(135deg, #fff4dc, #f3f0e8); }
     .combat-inline-message strong { color: #98681e; }
     .combat-inline-result { display: block; color: var(--ink); font-weight: 800; }
@@ -365,6 +409,8 @@
       .board-heading { align-items: start; }
       .board-heading p { max-width: 145px; }
       .board { grid-template-rows: repeat(6, minmax(48px, 1fr)); }
+      .phase-banner { margin-bottom: 10px; padding: 12px 14px; }
+      .phase-line { max-width: 78vw; }
       .panel { padding: 15px; border-radius: 15px; }
       .piece { border-radius: 9px; }
       .piece-label { letter-spacing: .06em; }
@@ -416,6 +462,14 @@
       }
     };
     const beats = { rock: "scissors", scissors: "paper", paper: "rock" };
+    const HIGH_GROUND_ASSETS = {
+      0: "high-ground-0000.png",
+      1: "high-ground-1000.png",
+      3: "high-ground-1100.png",
+      5: "high-ground-1010.png",
+      7: "high-ground-1110.png",
+      15: "high-ground-1111.png"
+    };
     const app = document.getElementById("app");
 
     let state;
@@ -455,10 +509,15 @@
         clearTimeout(moveAnimationTimer);
         moveAnimationTimer = null;
       }
+      if (terrainComputerTimer) {
+        clearTimeout(terrainComputerTimer);
+        terrainComputerTimer = null;
+      }
       state = {
         phase: "mode-select",
         gameMode: null,
         aiPlayer: 2,
+        terrainPlayer: 1,
         setupPlayer: 1,
         currentPlayer: 1,
         selectedId: null,
@@ -467,6 +526,7 @@
         extraChoice: { 1: null, 2: null },
         pieces: [],
         combat: null,
+        highGroundCells: [],
         rubbleCells: [],
         moveAnimation: null,
         winner: null,
@@ -489,6 +549,15 @@
     function alivePiecesOf(owner) { return piecesOf(owner).filter(piece => piece.alive); }
     function isInside(row, col) { return row >= 0 && row < BOARD_ROWS && col >= 0 && col < BOARD_COLS; }
     function pieceAt(row, col) { return state.pieces.find(piece => piece.alive && piece.row === row && piece.col === col); }
+    function terrainKey(row, col) { return `${row}-${col}`; }
+    function isHighGroundCell(row, col, cells = state.highGroundCells) { return cells.includes(terrainKey(row, col)); }
+    function toggleHighGroundCell(row, col, cells = state.highGroundCells) {
+      const key = terrainKey(row, col);
+      const index = cells.indexOf(key);
+      if (index === -1) cells.push(key);
+      else cells.splice(index, 1);
+      return index === -1;
+    }
     function rubbleKey(row, col) { return `${row}-${col}`; }
     function isRubbleCell(row, col) { return state.rubbleCells.includes(rubbleKey(row, col)); }
     function addRubble(row, col) { if (!isRubbleCell(row, col)) state.rubbleCells.push(rubbleKey(row, col)); }
@@ -499,6 +568,15 @@
 
     function chooseGameMode(mode) {
       state.gameMode = mode;
+      state.phase = "terrain-setup";
+      state.terrainPlayer = 1;
+      state.highGroundCells = [];
+      state.message = "Player 1, choose a tile to toggle high ground. Each choice passes terrain setup to the other player. Click outside the board when you are ready for random formations.";
+      render();
+    }
+
+    function finishTerrainSetup() {
+      if (state.phase !== "terrain-setup") return;
       randomizeArmies();
       state.phase = "setup";
       state.setupPlayer = 1;
@@ -536,6 +614,152 @@
       const flagVariants = [1, 2, 3].sort(() => Math.random() - 0.5);
       piecesOf(1).find(piece => piece.type === "flag").variant = flagVariants[0];
       piecesOf(2).find(piece => piece.type === "flag").variant = flagVariants[1];
+    }
+
+    function neighboringCells(row, col) {
+      return [[row - 1, col], [row, col + 1], [row + 1, col], [row, col - 1]].filter(([nextRow, nextCol]) => isInside(nextRow, nextCol));
+    }
+
+    function highGroundComponentSize(row, col, cells = state.highGroundCells) {
+      if (!isHighGroundCell(row, col, cells)) return 0;
+      const visited = new Set();
+      const queue = [[row, col]];
+      while (queue.length) {
+        const [currentRow, currentCol] = queue.shift();
+        const key = terrainKey(currentRow, currentCol);
+        if (visited.has(key) || !isHighGroundCell(currentRow, currentCol, cells)) continue;
+        visited.add(key);
+        neighboringCells(currentRow, currentCol).forEach(([nextRow, nextCol]) => {
+          if (!visited.has(terrainKey(nextRow, nextCol)) && isHighGroundCell(nextRow, nextCol, cells)) queue.push([nextRow, nextCol]);
+        });
+      }
+      return visited.size;
+    }
+
+    function largestHighGroundComponent(cells = state.highGroundCells) {
+      return cells.reduce((largest, key) => {
+        const [row, col] = key.split("-").map(Number);
+        return Math.max(largest, highGroundComponentSize(row, col, cells));
+      }, 0);
+    }
+
+    function highGroundBonus(piece) {
+      if (!piece || !isHighGroundCell(piece.row, piece.col)) return 0;
+      return Math.min(highGroundComponentSize(piece.row, piece.col) * 0.2, 0.8);
+    }
+
+    function terrainAdvantage(attacker, defender) {
+      const attackerBonus = highGroundBonus(attacker);
+      const defenderBonus = highGroundBonus(defender);
+      if (attackerBonus && !defenderBonus) return { side: "attacker", owner: attacker.owner, chance: attackerBonus };
+      if (defenderBonus && !attackerBonus) return { side: "defender", owner: defender.owner, chance: defenderBonus };
+      return null;
+    }
+
+    function determineCombat(attacker, defender) {
+      if (defender.type === "flag") return { outcome: "capture", terrainOwner: null, terrainChance: 0, terrainRollSucceeded: false };
+      const advantage = terrainAdvantage(attacker, defender);
+      const terrainRollSucceeded = Boolean(advantage && Math.random() < advantage.chance);
+      if (terrainRollSucceeded) {
+        return { outcome: advantage.side, terrainOwner: advantage.owner, terrainChance: advantage.chance, terrainRollSucceeded: true };
+      }
+      const outcome = attacker.type === defender.type ? "draw" : beats[attacker.type] === defender.type ? "attacker" : "defender";
+      return {
+        outcome,
+        terrainOwner: advantage?.owner || null,
+        terrainChance: advantage?.chance || 0,
+        terrainRollSucceeded: false
+      };
+    }
+
+    function terrainMask(row, col) {
+      let mask = 0;
+      if (isHighGroundCell(row - 1, col)) mask |= 1;
+      if (isHighGroundCell(row, col + 1)) mask |= 2;
+      if (isHighGroundCell(row + 1, col)) mask |= 4;
+      if (isHighGroundCell(row, col - 1)) mask |= 8;
+      return mask;
+    }
+
+    function rotateTerrainMask(mask) {
+      return ((mask << 1) | (mask >> 3)) & 15;
+    }
+
+    function highGroundAsset(row, col) {
+      const mask = terrainMask(row, col);
+      let canonicalMask = 16;
+      let turnsToCanonical = 0;
+      let rotatedMask = mask;
+      for (let turns = 0; turns < 4; turns += 1) {
+        if (rotatedMask < canonicalMask) {
+          canonicalMask = rotatedMask;
+          turnsToCanonical = turns;
+        }
+        rotatedMask = rotateTerrainMask(rotatedMask);
+      }
+      return {
+        asset: HIGH_GROUND_ASSETS[canonicalMask],
+        rotation: ((4 - turnsToCanonical) % 4) * 90
+      };
+    }
+
+    function terrainMarkup(row, col) {
+      if (!isHighGroundCell(row, col)) return "";
+      const { asset, rotation } = highGroundAsset(row, col);
+      return `<img class="high-ground-art" src="assets/${asset}" alt="" style="--terrain-rotation:${rotation}deg">`;
+    }
+
+    function hypotheticalTerrain(row, col) {
+      const cells = state.highGroundCells.slice();
+      toggleHighGroundCell(row, col, cells);
+      return cells;
+    }
+
+    function chooseComputerTerrainCell() {
+      let bestScore = -Infinity;
+      let bestCells = [];
+      for (let row = 0; row < BOARD_ROWS; row += 1) {
+        for (let col = 0; col < BOARD_COLS; col += 1) {
+          const cells = hypotheticalTerrain(row, col);
+          const centerDistance = Math.abs(row - (BOARD_ROWS - 1) / 2) + Math.abs(col - (BOARD_COLS - 1) / 2);
+          const centerScore = 1 - centerDistance / (BOARD_ROWS + BOARD_COLS);
+          const score = largestHighGroundComponent(cells) * 100 + highGroundComponentSize(row, col, cells) * 4 + centerScore;
+          if (score > bestScore) {
+            bestScore = score;
+            bestCells = [{ row, col }];
+          } else if (score === bestScore) {
+            bestCells.push({ row, col });
+          }
+        }
+      }
+      return bestCells[Math.floor(Math.random() * bestCells.length)];
+    }
+
+    function runComputerTerrainTurn() {
+      if (state.phase !== "terrain-ai-thinking" || state.terrainPlayer !== state.aiPlayer) return;
+      terrainComputerTimer = null;
+      const choice = chooseComputerTerrainCell();
+      toggleHighGroundCell(choice.row, choice.col);
+      state.terrainPlayer = 1;
+      state.phase = "terrain-setup";
+      state.message = "Player 1, choose the next terrain tile, or click outside the board to start random formations.";
+      render();
+    }
+
+    function handleTerrainCell(row, col) {
+      if (state.phase !== "terrain-setup") return;
+      const added = toggleHighGroundCell(row, col);
+      const action = added ? "High ground added" : "Tile returned to plain";
+      state.terrainPlayer = opponent(state.terrainPlayer);
+      if (state.gameMode === "computer" && state.terrainPlayer === state.aiPlayer) {
+        state.phase = "terrain-ai-thinking";
+        state.message = `${action}. Player 2 is choosing the next terrain tile.`;
+        render();
+        terrainComputerTimer = setTimeout(runComputerTerrainTurn, 700);
+        return;
+      }
+      state.message = `${action}. Player ${state.terrainPlayer}, choose a tile, or click outside the board to start random formations.`;
+      render();
     }
 
     function beginPass() {
@@ -669,10 +893,12 @@
       const revealDefender = !defender.revealedTo[attacker.owner];
       attacker.revealedTo[1] = true; attacker.revealedTo[2] = true;
       defender.revealedTo[1] = true; defender.revealedTo[2] = true;
-      const outcome = defender.type === "flag" ? "capture" : attacker.type === defender.type ? "draw" : beats[attacker.type] === defender.type ? "attacker" : "defender";
-      state.combat = { attackerId: attacker.id, defenderId: defender.id, row, col, fromRow: attacker.row, fromCol: attacker.col, outcome, revealAttacker, revealDefender };
+      const combatResult = determineCombat(attacker, defender);
+      state.combat = { attackerId: attacker.id, defenderId: defender.id, row, col, fromRow: attacker.row, fromCol: attacker.col, revealAttacker, revealDefender, ...combatResult };
       state.phase = "combat";
-      state.message = `Combat: ${typeName(attacker.type)} versus ${typeName(defender.type)}.`;
+      state.message = combatResult.terrainRollSucceeded
+        ? `Combat: ${typeName(attacker.type)} versus ${typeName(defender.type)}. Player ${combatResult.terrainOwner}'s high ground prevailed with a ${Math.round(combatResult.terrainChance * 100)}% chance.`
+        : `Combat: ${typeName(attacker.type)} versus ${typeName(defender.type)}.`;
       render();
       if (state.gameMode === "computer") {
         computerCombatTimer = setTimeout(() => {
@@ -771,6 +997,8 @@
         return score;
       }
       if (target) {
+        const terrainEdge = target.type === "flag" ? null : terrainAdvantage(move.piece, target);
+        if (terrainEdge) score += (terrainEdge.owner === state.aiPlayer ? 1 : -1) * terrainEdge.chance * 420;
         if (target.revealedTo[state.aiPlayer]) {
           if (target.type === "flag") return 10000;
           if (beats[move.piece.type] === target.type) score += 620;
@@ -878,6 +1106,8 @@
       if (context === "combat-board" && state.combat && [state.combat.attackerId, state.combat.defenderId].includes(piece.id)) {
         if (state.combat.outcome === "draw") {
           combatClass = " combat-draw";
+        } else if (state.combat.outcome === "capture" && piece.id === state.combat.defenderId) {
+          combatClass = " capture-flag-piece";
         } else if ((state.combat.outcome === "attacker" || state.combat.outcome === "capture") && piece.id === state.combat.attackerId) {
           combatClass = " combat-winner";
           combatStyle = ` style="--combat-x:${state.combat.col - piece.col};--combat-y:${state.combat.row - piece.row};"`;
@@ -898,10 +1128,12 @@
       return { rows, cols };
     }
 
-    function renderBattleBurst(variant = "", style = "") {
+    function renderBattleBurst(variant = "", style = "", flagAsset = "") {
       const rays = ["a", "b", "c", "d", "e", "f", "g", "h"].map(ray => `<span class="burst-ray ray-${ray}"></span>`).join("");
       const orbs = ["a", "b", "c", "d"].map(orb => `<span class="burst-orb orb-${orb}"></span>`).join("");
-      return `<span class="battle-burst ${variant}"${style ? ` style="${style}"` : ""} aria-hidden="true"><span class="burst-core"></span>${rays}${orbs}</span>`;
+      const shards = ["a", "b", "c", "d", "e", "f"].map(shard => `<span class="burst-shard shard-${shard}"></span>`).join("");
+      const capturedFlag = flagAsset ? `<img class="capture-flag-art" src="${flagAsset}" alt="Captured Flag">` : "";
+      return `<span class="battle-burst ${variant}"${style ? ` style="${style}"` : ""} aria-hidden="true"><span class="burst-flash"></span><span class="burst-ring ring-a"></span><span class="burst-ring ring-b"></span><span class="burst-core"></span>${capturedFlag}${rays}${orbs}${shards}</span>`;
     }
 
     function renderBoardBurst() {
@@ -911,7 +1143,51 @@
       if (!attacker || !defender) return "";
       const centerX = ((attacker.col + defender.col + 1) / (BOARD_COLS * 2)) * 100;
       const centerY = ((attacker.row + defender.row + 1) / (BOARD_ROWS * 2)) * 100;
-      return renderBattleBurst("battle-burst-overlay", `--burst-board-x:${centerX}%;--burst-board-y:${centerY}%;`);
+      const variant = state.combat.outcome === "capture" ? " capture" : "";
+      const flagAsset = state.combat.outcome === "capture" ? pieceAsset(defender) : "";
+      return renderBattleBurst(`battle-burst-overlay${variant}`, `--burst-board-x:${centerX}%;--burst-board-y:${centerY}%;`, flagAsset);
+    }
+
+    function terrainCornerRadii(mask) {
+      const radius = 14;
+      return {
+        tl: mask & 1 || mask & 8 ? 0 : radius,
+        tr: mask & 1 || mask & 2 ? 0 : radius,
+        br: mask & 4 || mask & 2 ? 0 : radius,
+        bl: mask & 4 || mask & 8 ? 0 : radius
+      };
+    }
+
+    function terrainTilePath(row, col, mask) {
+      const x = col * 100;
+      const y = row * 100;
+      const { tl, tr, br, bl } = terrainCornerRadii(mask);
+      return `M ${x + tl} ${y} H ${x + 100 - tr} Q ${x + 100} ${y} ${x + 100} ${y + tr} V ${y + 100 - br} Q ${x + 100} ${y + 100} ${x + 100 - br} ${y + 100} H ${x + bl} Q ${x} ${y + 100} ${x} ${y + 100 - bl} V ${y + tl} Q ${x} ${y} ${x + tl} ${y} Z`;
+    }
+
+    function terrainEdgePaths(row, col, mask) {
+      const x = col * 100;
+      const y = row * 100;
+      const { tl, tr, br, bl } = terrainCornerRadii(mask);
+      const paths = [];
+      if (!(mask & 1)) paths.push(`M ${x + tl} ${y} H ${x + 100 - tr}`);
+      if (!(mask & 2)) paths.push(`M ${x + 100} ${y + tr} V ${y + 100 - br}`);
+      if (!(mask & 4)) paths.push(`M ${x + 100 - br} ${y + 100} H ${x + bl}`);
+      if (!(mask & 8)) paths.push(`M ${x} ${y + 100 - bl} V ${y + tl}`);
+      return paths;
+    }
+
+    function renderTerrainLayer() {
+      if (!state.highGroundCells.length) return "";
+      const tilePaths = [];
+      const edgePaths = [];
+      state.highGroundCells.forEach(key => {
+        const [row, col] = key.split("-").map(Number);
+        const mask = terrainMask(row, col);
+        tilePaths.push(`<path d="${terrainTilePath(row, col, mask)}"></path>`);
+        terrainEdgePaths(row, col, mask).forEach(path => edgePaths.push(`<path d="${path}"></path>`));
+      });
+      return `<div class="terrain-layer" aria-hidden="true"><svg viewBox="0 0 400 600" preserveAspectRatio="none"><defs><clipPath id="terrain-shape" clipPathUnits="userSpaceOnUse">${tilePaths.join("")}</clipPath></defs><image href="assets/high-ground-1111.png" x="0" y="0" width="400" height="600" preserveAspectRatio="none" clip-path="url(#terrain-shape)"></image><g class="terrain-edge-shadow">${edgePaths.join("")}</g><g class="terrain-edge-highlight" transform="translate(0 -2)">${edgePaths.join("")}</g></svg></div>`;
     }
 
     function renderBoard(viewer, context = "board") {
@@ -923,7 +1199,11 @@
       rows.forEach(row => cols.forEach(col => {
         const piece = pieceAt(row, col);
         const classes = ["cell"];
+        const terrainPhase = state.phase === "terrain-setup" || state.phase === "terrain-ai-thinking";
+        const highGround = isHighGroundCell(row, col);
         const rubble = isRubbleCell(row, col);
+        if (terrainPhase) classes.push("terrain-cell");
+        if (highGround) classes.push("high-ground");
         if (rubble) classes.push("rubble");
         if (isHomeSquare(1, row)) classes.push("zone-p1");
         if (isHomeSquare(2, row)) classes.push("zone-p2");
@@ -941,8 +1221,9 @@
           else classes.push("combat-loser");
         }
         if (piece && state.moveAnimation?.pieceId === piece.id && context === "board") classes.push("move-arrival-cell");
-        const label = rubble ? `Forbidden rubble cell at row ${row + 1}, column ${col + 1}` : piece ? `${hiddenPieceLabel(piece, viewer, context)} at row ${row + 1}, column ${col + 1}` : `Empty square at row ${row + 1}, column ${col + 1}`;
-        const contents = rubble ? `<img class="rubble-art" src="assets/forbidden-rubble.png" alt="">` : piece ? renderPiece(piece, viewer, context) : "";
+        const terrainLabel = highGround ? "High-ground" : "Plain";
+        const label = rubble ? `Forbidden rubble cell at row ${row + 1}, column ${col + 1}` : piece ? `${hiddenPieceLabel(piece, viewer, context)} on ${terrainLabel.toLowerCase()} terrain at row ${row + 1}, column ${col + 1}` : `${terrainLabel} terrain tile at row ${row + 1}, column ${col + 1}`;
+        const contents = `${terrainMarkup(row, col)}${rubble ? `<img class="rubble-art" src="assets/forbidden-rubble.png" alt="">` : piece ? renderPiece(piece, viewer, context) : ""}`;
         html += `<button class="${classes.join(" ")}" data-row="${row}" data-col="${col}" aria-label="${label}">${contents}</button>`;
       }));
       return html;
@@ -967,6 +1248,8 @@
 
     function currentStatus() {
       if (state.phase === "setup") return "Random setup";
+      if (state.phase === "terrain-setup") return `Terrain setup · Player ${state.terrainPlayer}`;
+      if (state.phase === "terrain-ai-thinking") return "Terrain setup · Player 2 choosing";
       if (state.phase === "playing") return `Player ${state.currentPlayer} turn`;
       if (state.phase === "combat") return "Combat reveal";
       if (state.phase === "gameover") return "Game complete";
@@ -976,13 +1259,20 @@
     function render() {
       const aiIsActive = state.gameMode === "computer" && state.currentPlayer === state.aiPlayer;
       const viewer = aiIsActive ? 1 : state.phase === "setup" ? state.setupPlayer : state.currentPlayer;
+      const captureCombat = state.phase === "combat" && state.combat?.outcome === "capture";
+      const terrainPhase = state.phase === "terrain-setup" || state.phase === "terrain-ai-thinking";
+      const phaseLine = terrainPhase
+        ? state.phase === "terrain-ai-thinking"
+          ? "Terrain setup · Player 2 is choosing high ground"
+          : `Terrain setup · Player ${state.terrainPlayer}: tap a tile to toggle high ground · click outside the board to begin random formations`
+        : currentStatus();
       app.innerHTML = `
         <header class="topbar">
-          <div class="brand"><div class="brand-mark" aria-hidden="true"><span>RPS</span></div><div class="brand-copy"><p class="eyebrow">Pass &amp; play tactics</p><h1>Rock Paper Scissors <span>Stratego</span></h1></div></div>
+          <div class="brand"><div class="brand-mark" aria-hidden="true"><span>RPS</span></div><div class="brand-copy"><p class="eyebrow">Pass &amp; play tactics</p><h1>Rock Paper Scissors <span>Stratego</span></h1><p class="phase-line" aria-live="polite">${phaseLine}</p></div></div>
           <nav class="top-actions" aria-label="Game controls"><button class="icon-button rules-button" data-action="rules" aria-label="Rules" title="Rules"><span aria-hidden="true">?</span></button><button class="icon-button new-button" data-action="new" aria-label="New game" title="New game"><span aria-hidden="true">↻</span></button></nav>
         </header>
         <main class="game-layout">
-          <section class="board-column" aria-label="Game board"><div class="board-frame"><div class="board ${state.phase === "combat" ? "combat-board" : ""}" role="grid" aria-label="4 by 6 Rock Paper Scissors Stratego board">${renderBoard(viewer, state.phase === "combat" ? "combat-board" : "board")}${state.phase === "combat" && state.gameMode === "computer" ? renderBoardBurst() : ""}</div></div></section>
+          <section class="board-column" aria-label="Game board"><div class="board-frame"><div class="board ${state.phase === "combat" ? "combat-board" : ""}${captureCombat ? " capture-board" : ""}" role="grid" aria-label="4 by 6 Rock Paper Scissors Stratego board">${renderTerrainLayer()}${renderBoard(viewer, state.phase === "combat" ? "combat-board" : "board")}${state.phase === "combat" && state.gameMode === "computer" ? renderBoardBurst() : ""}</div></div></section>
         </main>
         ${renderOverlay()}
         ${state.phase === "combat" && state.gameMode !== "computer" ? renderCombatModal() : ""}
@@ -993,6 +1283,7 @@
     let rulesOpen = false;
     let computerCombatTimer = null;
     let moveAnimationTimer = null;
+    let terrainComputerTimer = null;
 
     function renderOverlay() {
       if (state.phase === "mode-select") return `<div class="overlay"><section class="pass-card mode-select-card"><div class="pass-icon" aria-hidden="true"><span>RPS</span></div><p class="eyebrow">Choose your table</p><h2>How will you play?</h2><p>Keep the classic private handoff, or let the computer command Player 2.</p><div class="mode-actions"><button class="primary-button" data-action="choose-mode" data-mode="computer">Play vs computer</button><button class="secondary-button" data-action="choose-mode" data-mode="local">Pass &amp; play</button></div></section></div>`;
@@ -1007,12 +1298,17 @@
     function combatDetails() {
       const attacker = pieceById(state.combat.attackerId);
       const defender = pieceById(state.combat.defenderId);
+      const terrainNote = state.combat.terrainOwner
+        ? state.combat.terrainRollSucceeded
+          ? ` — high ground prevailed (${Math.round(state.combat.terrainChance * 100)}% chance)`
+          : ` — high-ground roll missed (${Math.round(state.combat.terrainChance * 100)}% chance)`
+        : "";
       let title = "Combat resolved";
       let result = "";
       if (state.combat.outcome === "capture") { title = "Flag captured"; result = `${typeName(attacker.type)} captures the Flag`; }
-      else if (state.combat.outcome === "draw") { title = "Rubble formed"; result = `${typeName(attacker.type)} meets ${typeName(defender.type)} — this cell is forbidden for the rest of the game`; }
-      else if (state.combat.outcome === "attacker") { title = `${typeName(attacker.type)} wins`; result = `${typeName(attacker.type)} defeats ${typeName(defender.type)}`; }
-      else { title = `${typeName(defender.type)} wins`; result = `${typeName(defender.type)} defeats ${typeName(attacker.type)}`; }
+      else if (state.combat.outcome === "draw") { title = "Rubble formed"; result = `${typeName(attacker.type)} meets ${typeName(defender.type)} — this cell is forbidden for the rest of the game${terrainNote}`; }
+      else if (state.combat.outcome === "attacker") { title = `${typeName(attacker.type)} wins`; result = `${typeName(attacker.type)} defeats ${typeName(defender.type)}${terrainNote}`; }
+      else { title = `${typeName(defender.type)} wins`; result = `${typeName(defender.type)} defeats ${typeName(attacker.type)}${terrainNote}`; }
       return { attacker, defender, title, result };
     }
 
@@ -1020,8 +1316,10 @@
       const { attacker, defender, title, result } = combatDetails();
       const outcomeClass = state.combat.outcome === "draw" ? "draw" : state.combat.outcome === "defender" ? "defender-wins" : "attacker-wins";
       const attackerClass = state.combat.outcome === "draw" ? "" : state.combat.outcome === "attacker" || state.combat.outcome === "capture" ? "winner" : "loser";
-      const defenderClass = state.combat.outcome === "draw" ? "" : state.combat.outcome === "defender" ? "winner" : "loser";
-      return `<div class="overlay combat-overlay"><section class="pass-card combat-card"><p class="eyebrow">Public battle · field visible</p><h2>${title}</h2><div class="combatants ${outcomeClass}" aria-live="polite"><div class="combatant attacker ${attackerClass}">${renderPiece(attacker, attacker.owner, "combat")}</div><div class="versus">${state.combat.outcome === "draw" ? "TIE" : "VS"}</div><div class="combatant defender ${defenderClass}">${renderPiece(defender, defender.owner, "combat")}</div>${renderBattleBurst("battle-burst-modal")}</div><p class="combat-result">${result} <span>· The result resolves on the field.</span></p><button class="primary-button" data-action="continue-combat">Continue</button></section></div>`;
+      const defenderClass = state.combat.outcome === "draw" || state.combat.outcome === "capture" ? "" : state.combat.outcome === "defender" ? "winner" : "loser";
+      const burstVariant = state.combat.outcome === "capture" ? " capture" : "";
+      const flagAsset = state.combat.outcome === "capture" ? pieceAsset(defender) : "";
+      return `<div class="overlay combat-overlay"><section class="pass-card combat-card"><p class="eyebrow">Public battle · field visible</p><h2>${title}</h2><div class="combatants ${outcomeClass}" aria-live="polite"><div class="combatant attacker ${attackerClass}">${renderPiece(attacker, attacker.owner, "combat")}</div><div class="versus">${state.combat.outcome === "draw" ? "TIE" : "VS"}</div><div class="combatant defender ${defenderClass}">${renderPiece(defender, defender.owner, "combat")}</div>${renderBattleBurst(`battle-burst-modal${burstVariant}`, "", flagAsset)}</div><p class="combat-result">${result} <span>· The result resolves on the field.</span></p><button class="primary-button" data-action="continue-combat">Continue</button></section></div>`;
     }
 
     function renderInlineCombat() {
@@ -1030,13 +1328,14 @@
     }
 
     function renderRulesModal() {
-      return `<div class="modal-backdrop" data-action="close-rules"><section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" onclick="event.stopPropagation()"><div class="modal-heading"><div><p class="panel-label">How to play</p><h2 id="rules-title">Rules of the arena</h2></div><button class="close-button" data-action="close-rules" aria-label="Close rules">×</button></div><h3>Goal</h3><p>Capture the opponent's Flag. Player 1 moves first.</p><h3>Army</h3><ul><li>2 Rock, 2 Paper, 2 Scissors, and 1 Flag.</li><li>1 secret extra Rock, Paper, or Scissors, selected at random.</li></ul><h3>Setup</h3><p>Both armies begin in random home-row formations with their Flags protected on the back line. Before the opening move, select two friendly pieces in succession to swap them. Selecting an empty adjacent square makes the opening move and starts the game.</p><h3>Movement</h3><p>Move any piece one square orthogonally. Pieces cannot move diagonally, jump, land on a friendly piece, or enter a rubble cell. Flags can move but cannot attack.</p><h3>Combat</h3><ul><li>Rock beats Scissors.</li><li>Scissors beats Paper.</li><li>Paper beats Rock.</li><li>Matching pieces become rubble, and their cell is forbidden for the rest of the game.</li><li>Any non-Flag piece captures the Flag immediately.</li><li>An army reduced to only its Flag loses immediately.</li></ul><h3>Hidden information</h3><p>Enemy pieces are hidden until combat reveals them. A revealed enemy that survives stays known for the rest of the game. Keep the screen covered during each pass-device handoff.</p></section></div>`;
+      return `<div class="modal-backdrop" data-action="close-rules"><section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" onclick="event.stopPropagation()"><div class="modal-heading"><div><p class="panel-label">How to play</p><h2 id="rules-title">Rules of the arena</h2></div><button class="close-button" data-action="close-rules" aria-label="Close rules">×</button></div><h3>Goal</h3><p>Capture the opponent's Flag. Player 1 moves first.</p><h3>Army</h3><ul><li>2 Rock, 2 Paper, 2 Scissors, and 1 Flag.</li><li>1 secret extra Rock, Paper, or Scissors, selected at random.</li></ul><h3>Terrain setup</h3><p>Players alternate toggling any board tile between plain and high ground. Each toggle uses the current terrain turn. Click outside the board when ready to begin random army placement. Connected high-ground tiles form one public component and share seamless edges.</p><h3>Movement</h3><p>Move any piece one square orthogonally. Pieces cannot move diagonally, jump, land on a friendly piece, or enter a rubble cell. Flags can move but cannot attack.</p><h3>Combat</h3><ul><li>Rock beats Scissors.</li><li>Scissors beats Paper.</li><li>Paper beats Rock.</li><li>When exactly one combatant is on high ground, its component gives it a 20% chance per tile to override the normal result, capped at 80%.</li><li>A failed high-ground roll falls through to normal RPS logic, including a draw for matching pieces.</li><li>Matching pieces become rubble, and their cell is forbidden for the rest of the game.</li><li>Any non-Flag piece captures the Flag immediately.</li><li>An army reduced to only its Flag loses immediately.</li></ul><h3>Hidden information</h3><p>Enemy pieces are hidden until combat reveals them. A revealed enemy that survives stays known for the rest of the game. Keep the screen covered during each pass-device handoff.</p></section></div>`;
     }
 
     function bindEvents() {
       app.querySelectorAll("[data-row][data-col]").forEach(cell => cell.addEventListener("click", () => {
         const row = Number(cell.dataset.row); const col = Number(cell.dataset.col);
-        if (state.phase === "setup") handleSetupCell(row, col);
+        if (state.phase === "terrain-setup") handleTerrainCell(row, col);
+        else if (state.phase === "setup") handleSetupCell(row, col);
         else if (state.phase === "playing") handlePlayingCell(row, col);
       }));
       app.querySelectorAll("[data-mode]").forEach(button => button.addEventListener("click", () => handleAction("choose-mode", button.dataset.mode)));
@@ -1051,6 +1350,13 @@
       if (action === "begin-pass") { beginPass(); return; }
       if (action === "continue-combat") { resolveCombat(); return; }
     }
+
+    document.addEventListener("click", event => {
+      if (state?.phase !== "terrain-setup") return;
+      const target = event.target;
+      if (target.closest?.(".board-frame") || target.closest?.(".topbar") || target.closest?.(".phase-banner") || target.closest?.("[data-action]") || target.closest?.(".overlay") || target.closest?.(".modal-backdrop")) return;
+      finishTerrainSetup();
+    });
 
     document.addEventListener("keydown", event => {
       if (event.key === "Escape" && rulesOpen) { rulesOpen = false; render(); }

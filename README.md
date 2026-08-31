@@ -20,17 +20,19 @@ No build step or dependencies are required.
 ## How to play
 
 1. Choose **Pass & play** or **Play vs computer**.
-2. Both armies are placed randomly in their home rows, including a random extra Rock, Paper, or Scissors. Each Flag starts protected on the back line.
-3. Before the opening move, select two friendly pieces in succession to swap them. Select a piece and an empty adjacent square to make the opening move and start the game.
-4. Players alternate turns. Every piece moves one square horizontally or vertically. Flags can move but cannot attack.
-5. Moving a non-Flag piece onto an enemy piece starts combat:
+2. During terrain setup, players alternate tapping any tile to toggle it between plain and high ground. Click outside the board to finish; in computer mode, Player 2 chooses connected high ground automatically.
+3. Both armies are placed randomly in their home rows, including a random extra Rock, Paper, or Scissors. Each Flag starts protected on the back line.
+4. Before the opening move, select two friendly pieces in succession to swap them. Select a piece and an empty adjacent square to make the opening move and start the game.
+5. Players alternate turns. Every piece moves one square horizontally or vertically. Flags can move but cannot attack.
+6. Moving a non-Flag piece onto an enemy piece starts combat:
    - Rock defeats Scissors.
    - Scissors defeats Paper.
    - Paper defeats Rock.
+   - When exactly one combatant stands on high ground, its connected component gives it a 20% chance per tile to override the normal result, capped at 80%. A failed roll uses the normal rules.
    - Matching pieces become rubble, and that cell is forbidden for the rest of the game.
    - Any mobile piece captures the Flag.
    - A player with only their Flag remaining loses immediately.
-6. Capture the opposing Flag to win.
+7. Capture the opposing Flag to win.
 
 Enemy pieces remain hidden until combat reveals them. A revealed enemy that survives remains known for the rest of the game.
 
@@ -38,6 +40,7 @@ Enemy pieces remain hidden until combat reveals them. A revealed enemy that surv
 
 - Click or tap a piece to select it.
 - Click or tap a highlighted square to move or attack.
+- During terrain setup, click any tile to toggle high ground; connected high-ground tiles share their edges and increase the combat bonus up to 80%.
 - Before the opening move, tap two friendly pieces in succession to swap them, or move a piece to an empty adjacent square to start the game.
 - Use **Rules** to review the rules and **New game** to restart.
 
