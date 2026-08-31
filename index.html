@@ -188,6 +188,10 @@
     .cell.selected { background: #dcecff; box-shadow: inset 0 0 0 3px var(--blue); z-index: 1; }
     .cell.legal-move { background: #e3f2e5; box-shadow: inset 0 0 0 3px #65ae73; }
     .cell.legal-attack { background: #fff0d5; box-shadow: inset 0 0 0 3px var(--gold); }
+    .cell.high-ground.legal-move::after, .cell.high-ground.legal-attack::after, .cell.high-ground.selected::after { content: ""; position: absolute; z-index: 1; inset: 0; pointer-events: none; }
+    .cell.high-ground.legal-move::after { border: 4px solid #65ae73; background: rgba(101,174,115,.2); }
+    .cell.high-ground.legal-attack::after { border: 4px solid var(--gold); background: rgba(216,157,53,.2); }
+    .cell.high-ground.selected::after { border: 4px solid var(--blue); background: rgba(220,236,255,.16); }
     .cell.rubble, .cell.rubble:hover { background: linear-gradient(135deg, #c6c6c0, #e1ded4); cursor: not-allowed; box-shadow: inset 0 0 0 2px rgba(86,85,77,.28); }
     .rubble-art { position: relative; z-index: 1; width: 94%; height: 94%; object-fit: contain; filter: drop-shadow(0 8px 6px rgba(20,35,53,.3)); pointer-events: none; }
     .cell.high-ground { overflow: hidden; border: 0; border-radius: 0; }
@@ -196,10 +200,10 @@
     .high-ground-art { display: none; }
     .terrain-fill { position: absolute; z-index: 0; inset: 0; border-radius: var(--terrain-radius); background-image: url("assets/high-ground-1111.png"); background-position: var(--terrain-x) var(--terrain-y); background-repeat: no-repeat; background-size: 400% 600%; pointer-events: none; }
     .terrain-fill .terrain-edge { position: absolute; z-index: 1; pointer-events: none; opacity: .9; }
-    .terrain-fill .terrain-edge-n { top: 0; right: 0; left: 0; height: 13px; border-top: 1px solid rgba(255,244,214,.44); background: linear-gradient(to bottom, rgba(44,39,31,.58), transparent); }
-    .terrain-fill .terrain-edge-e { top: 0; right: 0; bottom: 0; width: 13px; border-right: 1px solid rgba(255,244,214,.44); background: linear-gradient(to left, rgba(44,39,31,.58), transparent); }
-    .terrain-fill .terrain-edge-s { right: 0; bottom: 0; left: 0; height: 13px; border-bottom: 1px solid rgba(255,244,214,.44); background: linear-gradient(to top, rgba(44,39,31,.58), transparent); }
-    .terrain-fill .terrain-edge-w { top: 0; bottom: 0; left: 0; width: 13px; border-left: 1px solid rgba(255,244,214,.44); background: linear-gradient(to right, rgba(44,39,31,.58), transparent); }
+    .terrain-fill .terrain-edge-n { top: 0; right: 0; left: 0; height: 19px; border-top: 2px solid rgba(61,45,25,.78); background: linear-gradient(to bottom, rgba(82,57,28,.72), rgba(139,125,49,.48) 38%, rgba(204,217,105,.3) 68%, transparent); box-shadow: 0 3px 4px rgba(31,42,20,.26); }
+    .terrain-fill .terrain-edge-e { top: 0; right: 0; bottom: 0; width: 19px; border-right: 2px solid rgba(61,45,25,.78); background: linear-gradient(to left, rgba(82,57,28,.72), rgba(139,125,49,.48) 38%, rgba(204,217,105,.3) 68%, transparent); box-shadow: -3px 0 4px rgba(31,42,20,.26); }
+    .terrain-fill .terrain-edge-s { right: 0; bottom: 0; left: 0; height: 19px; border-bottom: 2px solid rgba(61,45,25,.78); background: linear-gradient(to top, rgba(82,57,28,.72), rgba(139,125,49,.48) 38%, rgba(204,217,105,.3) 68%, transparent); box-shadow: 0 -3px 4px rgba(31,42,20,.26); }
+    .terrain-fill .terrain-edge-w { top: 0; bottom: 0; left: 0; width: 19px; border-left: 2px solid rgba(61,45,25,.78); background: linear-gradient(to right, rgba(82,57,28,.72), rgba(139,125,49,.48) 38%, rgba(204,217,105,.3) 68%, transparent); box-shadow: 3px 0 4px rgba(31,42,20,.26); }
     .piece { z-index: 2; }
     .cell.selected::before { content: "SELECTED"; position: absolute; top: 5px; left: 7px; color: var(--blue); font-size: 7px; font-weight: 900; letter-spacing: .1em; }
     .piece {
@@ -521,6 +525,7 @@
         gameMode: null,
         aiPlayer: 2,
         terrainPlayer: 1,
+        terrainLastCell: null,
         setupPlayer: 1,
         currentPlayer: 1,
         selectedId: null,
@@ -573,6 +578,7 @@
       state.gameMode = mode;
       state.phase = "terrain-setup";
       state.terrainPlayer = 1;
+      state.terrainLastCell = null;
       state.highGroundCells = [];
       state.message = "Player 1, choose a tile to toggle high ground. Each choice passes terrain setup to the other player. Click outside the board when you are ready for random formations.";
       render();
@@ -729,6 +735,7 @@
       let bestCells = [];
       for (let row = 0; row < BOARD_ROWS; row += 1) {
         for (let col = 0; col < BOARD_COLS; col += 1) {
+          if (terrainKey(row, col) === state.terrainLastCell) continue;
           const cells = hypotheticalTerrain(row, col);
           const centerDistance = Math.abs(row - (BOARD_ROWS - 1) / 2) + Math.abs(col - (BOARD_COLS - 1) / 2);
           const centerScore = 1 - centerDistance / (BOARD_ROWS + BOARD_COLS);
@@ -748,7 +755,9 @@
       if (state.phase !== "terrain-ai-thinking" || state.terrainPlayer !== state.aiPlayer) return;
       terrainComputerTimer = null;
       const choice = chooseComputerTerrainCell();
+      if (!choice) return;
       toggleHighGroundCell(choice.row, choice.col);
+      state.terrainLastCell = terrainKey(choice.row, choice.col);
       state.terrainPlayer = 1;
       state.phase = "terrain-setup";
       state.message = "Player 1, choose the next terrain tile, or click outside the board to start random formations.";
@@ -758,6 +767,7 @@
     function handleTerrainCell(row, col) {
       if (state.phase !== "terrain-setup") return;
       const added = toggleHighGroundCell(row, col);
+      state.terrainLastCell = terrainKey(row, col);
       const action = added ? "High ground added" : "Tile returned to plain";
       state.terrainPlayer = opponent(state.terrainPlayer);
       if (state.gameMode === "computer" && state.terrainPlayer === state.aiPlayer) {
