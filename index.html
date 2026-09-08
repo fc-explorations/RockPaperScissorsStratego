@@ -193,18 +193,12 @@
     .cell.high-ground.legal-attack::after { border: 4px solid var(--gold); background: rgba(216,157,53,.2); }
     .cell.high-ground.selected::after { border: 4px solid var(--blue); background: rgba(220,236,255,.16); }
     .cell.rubble, .cell.rubble:hover { background: linear-gradient(135deg, #c6c6c0, #e1ded4); cursor: not-allowed; box-shadow: inset 0 0 0 2px rgba(86,85,77,.28); }
-    .rubble-art { position: relative; z-index: 1; width: 94%; height: 94%; object-fit: contain; filter: drop-shadow(0 8px 6px rgba(20,35,53,.3)); pointer-events: none; }
-    .cell.high-ground { overflow: hidden; border: 0; border-radius: 0; }
+    .rubble-art { position: relative; z-index: 1; width: 94%; height: 94%; object-fit: contain; filter: drop-shadow(0 10px 8px rgba(20,35,53,.4)) drop-shadow(0 2px 2px rgba(15,25,38,.22)); pointer-events: none; }
+    .cell.high-ground { overflow: hidden; border: 0; border-radius: 0; background: transparent; }
     .cell.terrain-cell { cursor: pointer; }
     .cell.terrain-cell.terrain-locked { cursor: not-allowed; }
     .cell.terrain-cell:hover { box-shadow: inset 0 0 0 3px rgba(216,157,53,.54); }
-    .high-ground-art { display: none; }
-    .terrain-fill { position: absolute; z-index: 0; inset: 0; overflow: hidden; border-radius: var(--terrain-radius); background-image: url("assets/high-ground-1111.png"); background-position: var(--terrain-x) var(--terrain-y); background-repeat: no-repeat; background-size: 400% 600%; box-shadow: inset 0 0 0 1px rgba(61,45,25,.58); pointer-events: none; }
-    .terrain-fill .terrain-edge { position: absolute; z-index: 1; pointer-events: none; opacity: .9; }
-    .terrain-fill .terrain-edge-n { top: 0; right: 0; left: 0; height: 19px; border-top: 2px solid rgba(61,45,25,.78); background: linear-gradient(to bottom, rgba(82,57,28,.72), rgba(139,125,49,.48) 38%, rgba(204,217,105,.3) 68%, transparent); box-shadow: 0 3px 4px rgba(31,42,20,.26); }
-    .terrain-fill .terrain-edge-e { top: 0; right: 0; bottom: 0; width: 19px; border-right: 2px solid rgba(61,45,25,.78); background: linear-gradient(to left, rgba(82,57,28,.72), rgba(139,125,49,.48) 38%, rgba(204,217,105,.3) 68%, transparent); box-shadow: -3px 0 4px rgba(31,42,20,.26); }
-    .terrain-fill .terrain-edge-s { right: 0; bottom: 0; left: 0; height: 19px; border-bottom: 2px solid rgba(61,45,25,.78); background: linear-gradient(to top, rgba(82,57,28,.72), rgba(139,125,49,.48) 38%, rgba(204,217,105,.3) 68%, transparent); box-shadow: 0 -3px 4px rgba(31,42,20,.26); }
-    .terrain-fill .terrain-edge-w { top: 0; bottom: 0; left: 0; width: 19px; border-left: 2px solid rgba(61,45,25,.78); background: linear-gradient(to right, rgba(82,57,28,.72), rgba(139,125,49,.48) 38%, rgba(204,217,105,.3) 68%, transparent); box-shadow: 3px 0 4px rgba(31,42,20,.26); }
+    .terrain-layer { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; pointer-events: none; }
     .piece { z-index: 2; }
     .cell.selected::before { content: "SELECTED"; position: absolute; top: 5px; left: 7px; color: var(--blue); font-size: 7px; font-weight: 900; letter-spacing: .1em; }
     .piece {
@@ -228,7 +222,7 @@
     }
     .piece::before { display: none; }
     .piece-glyph { position: relative; font-size: clamp(20px, 4vw, 34px); line-height: .85; letter-spacing: -.1em; }
-    .piece-art { position: relative; z-index: 1; width: 98%; height: 94%; object-fit: contain; filter: drop-shadow(0 8px 6px rgba(20,35,53,.3)); }
+    .piece-art { position: relative; z-index: 1; width: 98%; height: 94%; object-fit: contain; filter: drop-shadow(0 10px 8px rgba(20,35,53,.4)) drop-shadow(0 2px 2px rgba(15,25,38,.22)); }
     .piece-label { position: relative; font-size: clamp(8px, 1vw, 10px); letter-spacing: .12em; }
     .piece:not(.hidden) .piece-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     .piece.hidden {
@@ -238,13 +232,13 @@
       border-radius: 11px;
       color: white;
       background: repeating-linear-gradient(135deg, #435770 0, #435770 5px, #526780 5px, #526780 10px);
-      box-shadow: 0 4px 9px rgba(20,35,53,.13), inset 0 1px rgba(255,255,255,.18);
+      box-shadow: 0 7px 14px rgba(20,35,53,.25), 0 2px 3px rgba(15,25,38,.16), inset 0 1px rgba(255,255,255,.18);
     }
     .piece.hidden.owner-p1 { background: repeating-linear-gradient(135deg, #385e88 0, #385e88 5px, #4d739b 5px, #4d739b 10px); }
     .piece.hidden.owner-p2 { background: repeating-linear-gradient(135deg, #8a4f4c 0, #8a4f4c 5px, #a8665e 5px, #a8665e 10px); }
     .piece.hidden .piece-glyph { font-size: clamp(19px, 3.5vw, 29px); }
     .piece.hidden .piece-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-    .piece.known .piece-art { filter: drop-shadow(0 8px 6px rgba(20,35,53,.3)) drop-shadow(0 0 2px rgba(216,157,53,.75)); }
+    .piece.known .piece-art { filter: drop-shadow(0 10px 8px rgba(20,35,53,.4)) drop-shadow(0 2px 2px rgba(15,25,38,.22)) drop-shadow(0 0 2px rgba(216,157,53,.75)); }
     .piece.known::before { display: none; }
     .piece.known::after { content: "👁️"; position: absolute; z-index: 4; top: -5px; right: -5px; width: auto; height: auto; border: 0; background: transparent; box-shadow: none; font-size: 17px; line-height: 1; transform: rotate(-8deg); }
     .piece.setup-selected { transform: translateY(-5px) rotate(-2deg); box-shadow: 0 9px 14px rgba(20,35,53,.2), 0 0 0 3px #e6b258; }
@@ -336,9 +330,9 @@
     .combatant.defender { right: 0; }
     .combatant .piece { width: min(148px, 100%); }
     .combatants.attacker-wins .combatant.attacker.winner { animation: advance-right 1.05s .58s cubic-bezier(.2,.8,.3,1) both; }
-    .combatants.attacker-wins .combatant.defender.loser { animation: combat-loser-vanish .58s 1s ease-in both; }
+    .combatants.attacker-wins .combatant.defender.loser { animation: combat-loser-vanish .28s 1.45s ease-in both; }
     .combatants.defender-wins .combatant.defender.winner { animation: advance-left 1.05s .58s cubic-bezier(.2,.8,.3,1) both; }
-    .combatants.defender-wins .combatant.attacker.loser { animation: combat-loser-vanish .58s 1s ease-in both; }
+    .combatants.defender-wins .combatant.attacker.loser { animation: combat-loser-vanish .28s 1.45s ease-in both; }
     .combatants.draw .versus { color: var(--navy); border-radius: 99px; padding: 5px 8px; background: #edb45a; box-shadow: 0 4px 12px rgba(16,27,45,.22); }
     .versus { position: absolute; z-index: 2; top: 82px; left: 50%; color: #edb45a; font-size: 11px; font-weight: 900; letter-spacing: .1em; transform: translate(-50%, -50%); }
     .combat-result { margin: 0 0 22px; color: white; font-size: 16px; font-weight: 800; }
@@ -350,7 +344,7 @@
     .cell.move-arrival-cell { z-index: 15; }
     .cell.combat-attacker .piece, .cell.combat-defender .piece { z-index: 5; }
     .cell.combat-attacker.combat-winner .piece, .cell.combat-defender.combat-winner .piece { animation: board-combat-winner 1.25s .55s cubic-bezier(.2,.8,.3,1) both; }
-    .cell.combat-loser .piece { animation: combat-loser-vanish .65s 1s ease-in both; }
+    .cell.combat-loser .piece { animation: combat-loser-vanish .28s 1.45s ease-in both; }
     .piece.move-arrival { animation: piece-arrival .55s cubic-bezier(.2,.8,.3,1) both; }
     .piece.reveal-turn::before { content: "?"; position: absolute; z-index: 4; inset: 12.5%; display: grid; place-items: center; border: 2px solid #8999ad; border-radius: 11px; color: white; background: repeating-linear-gradient(135deg, #435770 0, #435770 5px, #526780 5px, #526780 10px); box-shadow: 0 4px 9px rgba(20,35,53,.13), inset 0 1px rgba(255,255,255,.18); font-size: clamp(24px, 4vw, 34px); line-height: 1; animation: reveal-card-turn .58s ease-in-out both; }
     .piece.reveal-turn.owner-p1::before { background: repeating-linear-gradient(135deg, #385e88 0, #385e88 5px, #4d739b 5px, #4d739b 10px); }
@@ -443,7 +437,7 @@
 
     const BOARD_ROWS = 6;
     const BOARD_COLS = 4;
-    const MAX_TERRAIN_MOVES = 4;
+    const MAX_TERRAIN_MOVES_PER_PLAYER = 4;
     const TYPES = ["rock", "paper", "scissors", "flag"];
     const MOBILE_TYPES = ["rock", "paper", "scissors"];
     const TYPE_META = {
@@ -471,6 +465,8 @@
       }
     };
     const beats = { rock: "scissors", scissors: "paper", paper: "rock" };
+    // Terrain rendering rules live in TERRAIN_RENDERING.md. Keep terrain transparent,
+    // preserve the zone color beneath it, and never introduce component-sized overlays.
     const HIGH_GROUND_ASSETS = {
       0: "high-ground-0000.png",
       1: "high-ground-1000.png",
@@ -528,7 +524,8 @@
         aiPlayer: 2,
         terrainPlayer: 1,
         terrainLastCell: null,
-        terrainMoves: 0,
+        terrainMoves: { 1: 0, 2: 0 },
+        terrainOwners: {},
         permanentPlainCells: [],
         setupPlayer: 1,
         currentPlayer: 1,
@@ -584,7 +581,8 @@
       state.phase = "terrain-setup";
       state.terrainPlayer = 1;
       state.terrainLastCell = null;
-      state.terrainMoves = 0;
+      state.terrainMoves = { 1: 0, 2: 0 };
+      state.terrainOwners = {};
       state.permanentPlainCells = [];
       state.highGroundCells = [];
       state.message = "Player 1, choose a tile to toggle high ground. Each choice passes terrain setup to the other player. Click outside the board when you are ready for random formations.";
@@ -601,7 +599,9 @@
       render();
     }
 
-    function terrainSetupComplete() { return state.terrainMoves >= MAX_TERRAIN_MOVES; }
+    function terrainSetupComplete() {
+      return [1, 2].every(owner => state.terrainMoves[owner] >= MAX_TERRAIN_MOVES_PER_PLAYER);
+    }
 
     function randomizeArmy(owner) {
       const extraType = MOBILE_TYPES[Math.floor(Math.random() * MOBILE_TYPES.length)];
@@ -717,19 +717,9 @@
       }
       return {
         asset: HIGH_GROUND_ASSETS[canonicalMask],
+        canonicalMask,
         rotation: ((4 - turnsToCanonical) % 4) * 90
       };
-    }
-
-    function terrainMarkup(row, col) {
-      if (!isHighGroundCell(row, col)) return "";
-      const { asset, rotation } = highGroundAsset(row, col);
-      const mask = terrainMask(row, col);
-      const { tl, tr, br, bl } = terrainCornerRadii(mask);
-      const exposedEdges = [[1, "n"], [2, "e"], [4, "s"], [8, "w"]]
-        .map(([, edge]) => `<span class="terrain-edge terrain-edge-${edge}" aria-hidden="true"></span>`)
-        .join("");
-      return `<span class="terrain-fill" style="--terrain-x:${(col / (BOARD_COLS - 1)) * 100}%;--terrain-y:${(row / (BOARD_ROWS - 1)) * 100}%;--terrain-radius:${tl}px ${tr}px ${br}px ${bl}px"><img class="high-ground-art" src="assets/${asset}" alt="" style="--terrain-rotation:${rotation}deg">${exposedEdges}</span>`;
     }
 
     function hypotheticalTerrain(row, col) {
@@ -738,8 +728,205 @@
       return cells;
     }
 
-    function terrainMovesRemaining() {
-      return Math.max(0, MAX_TERRAIN_MOVES - state.terrainMoves);
+    function highGroundComponents(cells = state.highGroundCells) {
+      const remaining = new Set(cells);
+      const components = [];
+      while (remaining.size) {
+        const start = remaining.values().next().value;
+        const component = [];
+        const queue = [start];
+        remaining.delete(start);
+        while (queue.length) {
+          const key = queue.shift();
+          component.push(key);
+          const [row, col] = key.split("-").map(Number);
+          neighboringCells(row, col).forEach(([nextRow, nextCol]) => {
+            const nextKey = terrainKey(nextRow, nextCol);
+            if (remaining.has(nextKey)) {
+              remaining.delete(nextKey);
+              queue.push(nextKey);
+            }
+          });
+        }
+        components.push(component);
+      }
+      return components;
+    }
+
+    function terrainBoundaryPath(componentCells) {
+      const edges = [];
+      componentCells.forEach(key => {
+        const [row, col] = key.split("-").map(Number);
+        if (!componentCells.has(terrainKey(row - 1, col))) edges.push({ start: [col, row], end: [col + 1, row] });
+        if (!componentCells.has(terrainKey(row, col + 1))) edges.push({ start: [col + 1, row], end: [col + 1, row + 1] });
+        if (!componentCells.has(terrainKey(row + 1, col))) edges.push({ start: [col + 1, row + 1], end: [col, row + 1] });
+        if (!componentCells.has(terrainKey(row, col - 1))) edges.push({ start: [col, row + 1], end: [col, row] });
+      });
+      const edgeKey = point => `${point[0]}-${point[1]}`;
+      const outgoing = new Map(edges.map(edge => [edgeKey(edge.start), edge]));
+      const used = new Set();
+      const paths = [];
+      const cornerRadius = 0.45;
+      edges.forEach((startEdge, startIndex) => {
+        if (used.has(startIndex)) return;
+        let edge = startEdge;
+        const startPoint = edge.start;
+        const points = [startPoint];
+        while (edge) {
+          const edgeIndex = edges.indexOf(edge);
+          if (used.has(edgeIndex)) break;
+          used.add(edgeIndex);
+          points.push(edge.end);
+          if (edgeKey(edge.end) === edgeKey(startPoint)) break;
+          edge = outgoing.get(edgeKey(edge.end));
+        }
+        points.pop();
+        const pointAlong = (from, to, distance) => {
+          const dx = to[0] - from[0];
+          const dy = to[1] - from[1];
+          const length = Math.hypot(dx, dy) || 1;
+          return [from[0] + (dx / length) * distance, from[1] + (dy / length) * distance];
+        };
+        const before = (index) => pointAlong(points[index], points[(index - 1 + points.length) % points.length], cornerRadius);
+        const after = (index) => pointAlong(points[index], points[(index + 1) % points.length], cornerRadius);
+        const turnAt = index => {
+          const previous = points[(index - 1 + points.length) % points.length];
+          const current = points[index];
+          const next = points[(index + 1) % points.length];
+          return (current[0] - previous[0]) * (next[1] - current[1]) - (current[1] - previous[1]) * (next[0] - current[0]);
+        };
+        const start = after(0);
+        const rounded = [`M ${start[0]} ${start[1]}`];
+        for (let index = 1; index < points.length; index += 1) {
+          const entry = before(index);
+          const exit = after(index);
+          const turn = turnAt(index);
+          const corner = turn === 0 ? `L ${exit[0]} ${exit[1]}` : `A ${cornerRadius} ${cornerRadius} 0 0 ${turn > 0 ? 1 : 0} ${exit[0]} ${exit[1]}`;
+          rounded.push(`L ${entry[0]} ${entry[1]} ${corner}`);
+        }
+        const finalEntry = before(0);
+        const closingTurn = turnAt(0);
+        const closingCorner = closingTurn === 0 ? `L ${start[0]} ${start[1]}` : `A ${cornerRadius} ${cornerRadius} 0 0 ${closingTurn > 0 ? 1 : 0} ${start[0]} ${start[1]}`;
+        rounded.push(`L ${finalEntry[0]} ${finalEntry[1]} ${closingCorner} Z`);
+        paths.push(rounded.join(" "));
+      });
+      return paths.join(" ");
+    }
+
+    function renderTerrainLayer(viewer) {
+      const components = highGroundComponents();
+      if (!components.length) return "";
+      const componentDefs = [];
+      const componentLayers = [];
+      const edgeOverlap = 0.06;
+      const edgeBand = 0.15;
+      components.forEach(component => {
+        const componentCells = new Set(component);
+        const componentIndex = componentLayers.length;
+        const componentClipId = `terrain-component-${componentIndex}`;
+        const boundaryPath = terrainBoundaryPath(componentCells);
+        componentDefs.push(`<clipPath id="${componentClipId}" clipPathUnits="userSpaceOnUse"><path d="${boundaryPath}"/></clipPath>`);
+        const layers = [];
+        const zoneBacking = component.map(key => {
+          const [row, col] = key.split("-").map(Number);
+          const zoneFill = isHomeSquare(1, row) ? "url(#terrain-zone-p1)" : isHomeSquare(2, row) ? "url(#terrain-zone-p2)" : "url(#terrain-zone-neutral)";
+          return `<rect x="${col}" y="${row}" width="1" height="1" fill="${zoneFill}"/>`;
+        }).join("");
+        layers.push(zoneBacking);
+        layers.push(`<g clip-path="url(#${componentClipId})"><svg x="-1" y="0" width="6" height="6" viewBox="120 120 1014 1014" preserveAspectRatio="none"><image href="assets/high-ground-1111.png" x="0" y="0" width="1254" height="1254" preserveAspectRatio="none"/></svg></g>`);
+        const edgeLayers = component.map(key => {
+          const [row, col] = key.split("-").map(Number);
+          const { asset, rotation } = highGroundAsset(row, col);
+          const sideClip = {
+            north: `<rect x="0" y="0" width="1.12" height="${edgeBand}"/>`,
+            east: `<rect x="${1.12 - edgeBand}" y="0" width="${edgeBand}" height="1.12"/>`,
+            south: `<rect x="0" y="${1.12 - edgeBand}" width="1.12" height="${edgeBand}"/>`,
+            west: `<rect x="0" y="0" width="${edgeBand}" height="1.12"/>`
+          };
+          const image = (side, sideIndex) => {
+            const clipId = `terrain-edge-${componentIndex}-${row}-${col}-${side}-${sideIndex}`;
+            const imageSize = 1 + edgeOverlap * 2;
+            return `<svg x="${col - edgeOverlap}" y="${row - edgeOverlap}" width="${imageSize}" height="${imageSize}" viewBox="0 0 ${imageSize} ${imageSize}" preserveAspectRatio="none"><defs><clipPath id="${clipId}" clipPathUnits="userSpaceOnUse">${sideClip[side]}</clipPath></defs><g clip-path="url(#${clipId})"><image href="assets/${asset}" x="0" y="0" width="${imageSize}" height="${imageSize}" preserveAspectRatio="none" transform="rotate(${rotation} ${imageSize / 2} ${imageSize / 2})"/></g></svg>`;
+          };
+          const sides = [];
+          let sideIndex = 0;
+          if (!componentCells.has(terrainKey(row - 1, col))) sides.push(image("north", sideIndex++));
+          if (!componentCells.has(terrainKey(row, col + 1))) sides.push(image("east", sideIndex++));
+          if (!componentCells.has(terrainKey(row + 1, col))) sides.push(image("south", sideIndex++));
+          if (!componentCells.has(terrainKey(row, col - 1))) sides.push(image("west", sideIndex++));
+          return sides.join("");
+        }).join("");
+        const slopeLayers = component.map(key => {
+          const [row, col] = key.split("-").map(Number);
+          const slopeRotation = { north: 180, east: 270, south: 0, west: 90 };
+          const slope = (side, sideIndex) => {
+            const rotation = slopeRotation[side];
+            const slopeHeight = edgeBand + edgeOverlap;
+            const strip = `<svg x="${col - edgeOverlap}" y="${row + 1 - edgeBand}" width="${1 + edgeOverlap * 2}" height="${slopeHeight}" viewBox="120 1084 1014 170" preserveAspectRatio="none"><image href="assets/high-ground-0000.png" x="0" y="0" width="1254" height="1254" preserveAspectRatio="none"/></svg>`;
+            return `<g transform="rotate(${rotation} ${col + 0.5} ${row + 0.5})">${strip}</g>`;
+          };
+          const sides = [];
+          let sideIndex = 0;
+          if (!componentCells.has(terrainKey(row - 1, col))) sides.push(slope("north", sideIndex++));
+          if (!componentCells.has(terrainKey(row, col + 1))) sides.push(slope("east", sideIndex++));
+          if (!componentCells.has(terrainKey(row + 1, col))) sides.push(slope("south", sideIndex++));
+          if (!componentCells.has(terrainKey(row, col - 1))) sides.push(slope("west", sideIndex++));
+          return sides.join("");
+        }).join("");
+        const cornerSize = 0.3;
+        const cornerLayers = [];
+        const concaveCornerLayers = [];
+        const concaveCornerSize = 0.5;
+        const convexRotation = {
+          "nw": 180,
+          "ne": 270,
+          "sw": 90,
+          "se": 0
+        };
+        const concaveRotation = {
+          "nw": 0,
+          "ne": 90,
+          "sw": 270,
+          "se": 180
+        };
+        for (let row = 0; row <= BOARD_ROWS; row += 1) {
+          for (let col = 0; col <= BOARD_COLS; col += 1) {
+            const quadrants = {
+              nw: componentCells.has(terrainKey(row - 1, col - 1)),
+              ne: componentCells.has(terrainKey(row - 1, col)),
+              sw: componentCells.has(terrainKey(row, col - 1)),
+              se: componentCells.has(terrainKey(row, col))
+            };
+            const occupied = Object.entries(quadrants).filter(([, present]) => present).map(([name]) => name);
+            if (occupied.length !== 1 && occupied.length !== 3) continue;
+            const isConvex = occupied.length === 1;
+            const anchor = isConvex ? occupied[0] : Object.entries(quadrants).find(([, present]) => !present)[0];
+            const rotation = (isConvex ? convexRotation : concaveRotation)[anchor];
+            const cropX = 1050;
+            const cropY = 1050;
+            const cropWidth = 204;
+            const cropHeight = 204;
+            const cropCenterX = cropX + cropWidth / 2;
+            const cropCenterY = cropY + cropHeight / 2;
+            const spriteSize = isConvex ? cornerSize : concaveCornerSize;
+            const spriteX = isConvex ? col - spriteSize / 2 : col + (anchor === "nw" || anchor === "sw" ? -spriteSize : 0);
+            const spriteY = isConvex ? row - spriteSize / 2 : row + (anchor === "nw" || anchor === "ne" ? -spriteSize : 0);
+            const sprite = `<svg x="${spriteX}" y="${spriteY}" width="${spriteSize}" height="${spriteSize}" viewBox="${cropX} ${cropY} ${cropWidth} ${cropHeight}" preserveAspectRatio="none"><image href="assets/high-ground-0000.png" x="0" y="0" width="1254" height="1254" preserveAspectRatio="none" transform="rotate(${rotation} ${cropCenterX} ${cropCenterY})"/></svg>`;
+            if (isConvex) cornerLayers.push(sprite);
+            else concaveCornerLayers.push(sprite);
+          }
+        }
+        layers.push(`<g clip-path="url(#${componentClipId})">${edgeLayers}${slopeLayers}${cornerLayers.join("")}</g>`);
+        layers.push(concaveCornerLayers.join(""));
+        componentLayers.push(layers.join(""));
+      });
+      const orientation = viewer === 2 ? ` transform="rotate(180 ${BOARD_COLS / 2} ${BOARD_ROWS / 2})"` : "";
+      const terrainSvg = `<svg class="terrain-layer" viewBox="0 0 ${BOARD_COLS} ${BOARD_ROWS}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="terrain-zone-p1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b9d6df"/><stop offset="1" stop-color="#cce3e8"/></linearGradient><linearGradient id="terrain-zone-p2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8c5c2"/><stop offset="1" stop-color="#f2d7d1"/></linearGradient><linearGradient id="terrain-zone-neutral" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d5e3e7"/><stop offset="1" stop-color="#e3edf0"/></linearGradient>${componentDefs.join("")}</defs><g${orientation}>${componentLayers.join("")}</g></svg>`;
+      return terrainSvg;
+    }
+
+    function terrainMovesRemaining(owner = state.terrainPlayer) {
+      return Math.max(0, MAX_TERRAIN_MOVES_PER_PLAYER - state.terrainMoves[owner]);
     }
 
     function terrainMoveLabel(count) {
@@ -747,16 +934,41 @@
     }
 
     function chooseComputerTerrainCell() {
+      const aiPlayer = state.aiPlayer;
+      const enemyPlayer = opponent(aiPlayer);
+      const movesUsed = state.terrainMoves[aiPlayer];
+      const movesRemaining = terrainMovesRemaining(aiPlayer);
+      const raidMode = movesRemaining <= 2;
+      const enemyHighGround = state.highGroundCells.filter(key => state.terrainOwners[key] === enemyPlayer && !state.permanentPlainCells.includes(key));
       let bestScore = -Infinity;
       let bestCells = [];
       for (let row = 0; row < BOARD_ROWS; row += 1) {
         for (let col = 0; col < BOARD_COLS; col += 1) {
           const key = terrainKey(row, col);
           if (key === state.terrainLastCell || state.permanentPlainCells.includes(key)) continue;
+          const wasHighGround = isHighGroundCell(row, col);
+          const isEnemyTerrain = enemyHighGround.includes(key);
+          if (raidMode && enemyHighGround.length && !isEnemyTerrain) continue;
+          if (!raidMode && wasHighGround) continue;
           const cells = hypotheticalTerrain(row, col);
-          const centerDistance = Math.abs(row - (BOARD_ROWS - 1) / 2) + Math.abs(col - (BOARD_COLS - 1) / 2);
-          const centerScore = 1 - centerDistance / (BOARD_ROWS + BOARD_COLS);
-          const score = largestHighGroundComponent(cells) * 100 + highGroundComponentSize(row, col, cells) * 4 + centerScore;
+          let score = Math.random() * 0.01;
+          if (raidMode && enemyHighGround.length) {
+            const componentBefore = highGroundComponentSize(row, col);
+            const componentAfter = largestHighGroundComponent(cells);
+            score += componentBefore * 120 + (largestHighGroundComponent() - componentAfter) * 400;
+            if (isHomeSquare(enemyPlayer, row)) score += 60;
+          } else {
+            const aiRows = ownRows(aiPlayer);
+            const frontRow = aiRows[1];
+            const adjacentOwnTerrain = neighboringCells(row, col).some(([nextRow, nextCol]) => state.terrainOwners[terrainKey(nextRow, nextCol)] === aiPlayer && isHighGroundCell(nextRow, nextCol));
+            if (isHomeSquare(aiPlayer, row)) score += 700;
+            if (row === frontRow) score += 180;
+            if (adjacentOwnTerrain) score += 260;
+            score += highGroundComponentSize(row, col, cells) * 55;
+            score += largestHighGroundComponent(cells) * 18;
+            if (!isHomeSquare(aiPlayer, row)) score -= 130;
+            if (movesUsed === 0 && isHomeSquare(aiPlayer, row)) score += 100;
+          }
           if (score > bestScore) {
             bestScore = score;
             bestCells = [{ row, col }];
@@ -781,10 +993,17 @@
       const choice = chooseComputerTerrainCell();
       if (!choice) return;
       const wasHighGround = isHighGroundCell(choice.row, choice.col);
+      const actingPlayer = state.terrainPlayer;
+      const choiceKey = terrainKey(choice.row, choice.col);
       toggleHighGroundCell(choice.row, choice.col);
-      if (wasHighGround) state.permanentPlainCells.push(terrainKey(choice.row, choice.col));
-      state.terrainLastCell = terrainKey(choice.row, choice.col);
-      state.terrainMoves += 1;
+      if (wasHighGround) {
+        state.permanentPlainCells.push(choiceKey);
+        delete state.terrainOwners[choiceKey];
+      } else {
+        state.terrainOwners[choiceKey] = actingPlayer;
+      }
+      state.terrainLastCell = choiceKey;
+      state.terrainMoves[actingPlayer] += 1;
       const action = wasHighGround ? "Tile returned to plain permanently" : "High ground added";
       state.terrainPlayer = 1;
       if (terrainSetupComplete()) {
@@ -812,11 +1031,18 @@
       }
       const wasHighGround = isHighGroundCell(row, col);
       const added = toggleHighGroundCell(row, col);
-      if (wasHighGround && !added) state.permanentPlainCells.push(terrainKey(row, col));
-      state.terrainLastCell = terrainKey(row, col);
-      state.terrainMoves += 1;
+      const actingPlayer = state.terrainPlayer;
+      const cellKey = terrainKey(row, col);
+      if (wasHighGround && !added) {
+        state.permanentPlainCells.push(cellKey);
+        delete state.terrainOwners[cellKey];
+      } else {
+        state.terrainOwners[cellKey] = actingPlayer;
+      }
+      state.terrainLastCell = cellKey;
+      state.terrainMoves[actingPlayer] += 1;
       const action = added ? "High ground added" : "Tile returned to plain";
-      state.terrainPlayer = opponent(player);
+      state.terrainPlayer = opponent(state.terrainPlayer);
       if (terrainSetupComplete()) {
         finishTerrainSetup();
         return;
@@ -1218,21 +1444,11 @@
       const attacker = pieceById(state.combat.attackerId);
       const defender = pieceById(state.combat.defenderId);
       if (!attacker || !defender) return "";
-      const centerX = ((attacker.col + defender.col + 1) / (BOARD_COLS * 2)) * 100;
-      const centerY = ((attacker.row + defender.row + 1) / (BOARD_ROWS * 2)) * 100;
+      const centerX = ((state.combat.col + 0.5) / BOARD_COLS) * 100;
+      const centerY = ((state.combat.row + 0.5) / BOARD_ROWS) * 100;
       const variant = state.combat.outcome === "capture" ? " capture" : "";
       const flagAsset = state.combat.outcome === "capture" ? pieceAsset(defender) : "";
       return renderBattleBurst(`battle-burst-overlay${variant}`, `--burst-board-x:${centerX}%;--burst-board-y:${centerY}%;`, flagAsset);
-    }
-
-    function terrainCornerRadii(mask) {
-      const radius = 14;
-      return {
-        tl: mask & 1 || mask & 8 ? 0 : radius,
-        tr: mask & 1 || mask & 2 ? 0 : radius,
-        br: mask & 4 || mask & 2 ? 0 : radius,
-        bl: mask & 4 || mask & 8 ? 0 : radius
-      };
     }
 
     function renderBoard(viewer, context = "board") {
@@ -1240,7 +1456,7 @@
       const selected = state.selectedId ? pieceById(state.selectedId) : null;
       const legalMoves = selected && state.phase === "playing" ? getLegalMoves(selected) : [];
       const legalMap = new Map(legalMoves.map(move => [`${move.row}-${move.col}`, move]));
-      let html = "";
+      let html = renderTerrainLayer(viewer);
       rows.forEach(row => cols.forEach(col => {
         const piece = pieceAt(row, col);
         const classes = ["cell"];
@@ -1270,7 +1486,7 @@
         if (piece && state.moveAnimation?.pieceId === piece.id && context === "board") classes.push("move-arrival-cell");
         const terrainLabel = terrainLocked ? "Permanently plain" : highGround ? "High-ground" : "Plain";
         const label = rubble ? `Forbidden rubble cell at row ${row + 1}, column ${col + 1}` : piece ? `${hiddenPieceLabel(piece, viewer, context)} on ${terrainLabel.toLowerCase()} terrain at row ${row + 1}, column ${col + 1}` : `${terrainLabel} terrain tile at row ${row + 1}, column ${col + 1}`;
-        const contents = `${terrainMarkup(row, col)}${rubble ? `<img class="rubble-art" src="assets/forbidden-rubble.png" alt="">` : piece ? renderPiece(piece, viewer, context) : ""}`;
+        const contents = `${rubble ? `<img class="rubble-art" src="assets/forbidden-rubble.png" alt="">` : piece ? renderPiece(piece, viewer, context) : ""}`;
         const lockedAttribute = terrainPhase && terrainLocked ? ` aria-disabled="true"` : "";
         html += `<button class="${classes.join(" ")}"${lockedAttribute} data-row="${row}" data-col="${col}" aria-label="${label}">${contents}</button>`;
       }));
@@ -1376,7 +1592,7 @@
     }
 
     function renderRulesModal() {
-      return `<div class="modal-backdrop" data-action="close-rules"><section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" onclick="event.stopPropagation()"><div class="modal-heading"><div><p class="panel-label">How to play</p><h2 id="rules-title">Rules of the arena</h2></div><button class="close-button" data-action="close-rules" aria-label="Close rules">×</button></div><h3>Goal</h3><p>Capture the opponent's Flag. Player 1 moves first.</p><h3>Army</h3><ul><li>2 Rock, 2 Paper, 2 Scissors, and 1 Flag.</li><li>1 secret extra Rock, Paper, or Scissors, selected at random.</li></ul><h3>Terrain setup</h3><p>Players alternate for a shared maximum of 4 terrain moves. Each move uses the current terrain turn, and the header shows the remaining moves. A high-ground tile returned to plain is permanently plain and cannot be changed back by either player. Setup starts automatically after the fourth move, or you can click outside the board to finish early. Connected high-ground tiles form one public component and share seamless edges.</p><h3>Movement</h3><p>Move any piece one square orthogonally. Pieces cannot move diagonally, jump, land on a friendly piece, or enter a rubble cell. Flags can move but cannot attack.</p><h3>Combat</h3><ul><li>Rock beats Scissors.</li><li>Scissors beats Paper.</li><li>Paper beats Rock.</li><li>When exactly one combatant is on high ground, its component gives it a 20% chance per tile to override the normal result, capped at 80%.</li><li>A failed high-ground roll falls through to normal RPS logic, including a draw for matching pieces.</li><li>Matching pieces become rubble, and their cell is forbidden for the rest of the game.</li><li>Any non-Flag piece captures the Flag immediately.</li><li>An army reduced to only its Flag loses immediately.</li></ul><h3>Hidden information</h3><p>Enemy pieces are hidden until combat reveals them. A revealed enemy that survives stays known for the rest of the game. Keep the screen covered during each pass-device handoff.</p></section></div>`;
+      return `<div class="modal-backdrop" data-action="close-rules"><section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" onclick="event.stopPropagation()"><div class="modal-heading"><div><p class="panel-label">How to play</p><h2 id="rules-title">Rules of the arena</h2></div><button class="close-button" data-action="close-rules" aria-label="Close rules">×</button></div><h3>Goal</h3><p>Capture the opponent's Flag. Player 1 moves first.</p><h3>Army</h3><ul><li>2 Rock, 2 Paper, 2 Scissors, and 1 Flag.</li><li>1 secret extra Rock, Paper, or Scissors, selected at random.</li></ul><h3>Terrain setup</h3><p>Players alternate for up to 4 terrain moves each. Each player’s remaining moves are shown in the header. A high-ground tile returned to plain is permanently plain and cannot be changed back by either player. Setup starts automatically after both players use all four moves, or you can click outside the board to finish early. Connected high-ground tiles form one public component and share seamless edges.</p><h3>Movement</h3><p>Move any piece one square orthogonally. Pieces cannot move diagonally, jump, land on a friendly piece, or enter a rubble cell. Flags can move but cannot attack.</p><h3>Combat</h3><ul><li>Rock beats Scissors.</li><li>Scissors beats Paper.</li><li>Paper beats Rock.</li><li>When exactly one combatant is on high ground, its component gives it a 20% chance per tile to override the normal result, capped at 80%.</li><li>A failed high-ground roll falls through to normal RPS logic, including a draw for matching pieces.</li><li>Matching pieces become rubble, and their cell is forbidden for the rest of the game.</li><li>Any non-Flag piece captures the Flag immediately.</li><li>An army reduced to only its Flag loses immediately.</li></ul><h3>Hidden information</h3><p>Enemy pieces are hidden until combat reveals them. A revealed enemy that survives stays known for the rest of the game. Keep the screen covered during each pass-device handoff.</p></section></div>`;
     }
 
     function bindEvents() {
