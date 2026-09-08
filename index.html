@@ -192,9 +192,9 @@
     .cell.high-ground.legal-move::after { border: 4px solid #65ae73; background: rgba(101,174,115,.2); }
     .cell.high-ground.legal-attack::after { border: 4px solid var(--gold); background: rgba(216,157,53,.2); }
     .cell.high-ground.selected::after { border: 4px solid var(--blue); background: rgba(220,236,255,.16); }
-    .cell.rubble, .cell.rubble:hover { background: linear-gradient(135deg, #c6c6c0, #e1ded4); cursor: not-allowed; box-shadow: inset 0 0 0 2px rgba(86,85,77,.28); }
+    .cell.rubble, .cell.rubble:hover { cursor: not-allowed; box-shadow: none; }
     .rubble-art { position: relative; z-index: 1; width: 94%; height: 94%; object-fit: contain; filter: drop-shadow(0 10px 8px rgba(20,35,53,.4)) drop-shadow(0 2px 2px rgba(15,25,38,.22)); pointer-events: none; }
-    .cell.high-ground { overflow: hidden; border: 0; border-radius: 0; background: transparent; }
+    .cell.high-ground { overflow: visible; border: 0; border-radius: 0; background: transparent; }
     .cell.terrain-cell { cursor: pointer; }
     .cell.terrain-cell.terrain-locked { cursor: not-allowed; }
     .cell.terrain-cell:hover { box-shadow: inset 0 0 0 3px rgba(216,157,53,.54); }
@@ -240,7 +240,9 @@
     .piece.hidden .piece-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     .piece.known .piece-art { filter: drop-shadow(0 10px 8px rgba(20,35,53,.4)) drop-shadow(0 2px 2px rgba(15,25,38,.22)) drop-shadow(0 0 2px rgba(216,157,53,.75)); }
     .piece.known::before { display: none; }
-    .piece.known::after { content: "👁️"; position: absolute; z-index: 4; top: -5px; right: -5px; width: auto; height: auto; border: 0; background: transparent; box-shadow: none; font-size: 17px; line-height: 1; transform: rotate(-8deg); }
+    .known-eye { position: absolute; z-index: 4; top: -6px; right: -6px; width: 22px; height: 15px; overflow: visible; pointer-events: none; filter: drop-shadow(0 1px 1px rgba(255,255,255,.7)); transform: rotate(-8deg); }
+    .known-eye path, .known-eye circle { fill: none; stroke: #687583; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .known-eye .pupil { fill: #687583; stroke: none; }
     .piece.setup-selected { transform: translateY(-5px) rotate(-2deg); box-shadow: 0 9px 14px rgba(20,35,53,.2), 0 0 0 3px #e6b258; }
     .cell:hover .piece { transform: translateY(-2px); }
     .tray { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 24px; row-gap: 9px; }
@@ -438,6 +440,7 @@
     const BOARD_ROWS = 6;
     const BOARD_COLS = 4;
     const MAX_TERRAIN_MOVES_PER_PLAYER = 4;
+    const HIGH_GROUND_WIN_CHANCE = 0.5;
     const TYPES = ["rock", "paper", "scissors", "flag"];
     const MOBILE_TYPES = ["rock", "paper", "scissors"];
     const TYPE_META = {
@@ -663,7 +666,7 @@
 
     function highGroundBonus(piece) {
       if (!piece || !isHighGroundCell(piece.row, piece.col)) return 0;
-      return Math.min(highGroundComponentSize(piece.row, piece.col) * 0.2, 0.8);
+      return HIGH_GROUND_WIN_CHANCE;
     }
 
     function terrainAdvantage(attacker, defender) {
@@ -1364,7 +1367,6 @@
       if (state.gameMode === "computer" && state.currentPlayer === state.aiPlayer) {
         state.phase = "ai-thinking";
         state.message = "Player 2's move.";
-        render();
         setTimeout(runComputerTurn, 850);
         return;
       }
@@ -1422,7 +1424,8 @@
         }
       }
       const pieceStyle = combatStyle || moveStyle;
-      return `<div class="piece ${typeClass} ${ownerClass}${knownClass}${selectedClass}${combatClass}${moveClass}${revealClass}"${pieceStyle} aria-label="${hidden ? `Hidden Player ${piece.owner} piece` : `${typeName(piece.type)} belonging to Player ${piece.owner}`}" title="${hidden ? `Hidden Player ${piece.owner} piece` : typeName(piece.type)}">${artwork}<span class="piece-label">${label}</span></div>`;
+      const knownEye = knownClass ? `<svg class="known-eye" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 8 C5 2.2 19 2.2 22 8"></path><circle class="iris" cx="12" cy="8" r="3"></circle><circle class="pupil" cx="12" cy="8" r="1.15"></circle></svg>` : "";
+      return `<div class="piece ${typeClass} ${ownerClass}${knownClass}${selectedClass}${combatClass}${moveClass}${revealClass}"${pieceStyle} aria-label="${hidden ? `Hidden Player ${piece.owner} piece` : `${typeName(piece.type)} belonging to Player ${piece.owner}`}" title="${hidden ? `Hidden Player ${piece.owner} piece` : typeName(piece.type)}">${artwork}${knownEye}<span class="piece-label">${label}</span></div>`;
     }
 
     function displayCoordinates(viewer) {
@@ -1592,7 +1595,7 @@
     }
 
     function renderRulesModal() {
-      return `<div class="modal-backdrop" data-action="close-rules"><section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" onclick="event.stopPropagation()"><div class="modal-heading"><div><p class="panel-label">How to play</p><h2 id="rules-title">Rules of the arena</h2></div><button class="close-button" data-action="close-rules" aria-label="Close rules">×</button></div><h3>Goal</h3><p>Capture the opponent's Flag. Player 1 moves first.</p><h3>Army</h3><ul><li>2 Rock, 2 Paper, 2 Scissors, and 1 Flag.</li><li>1 secret extra Rock, Paper, or Scissors, selected at random.</li></ul><h3>Terrain setup</h3><p>Players alternate for up to 4 terrain moves each. Each player’s remaining moves are shown in the header. A high-ground tile returned to plain is permanently plain and cannot be changed back by either player. Setup starts automatically after both players use all four moves, or you can click outside the board to finish early. Connected high-ground tiles form one public component and share seamless edges.</p><h3>Movement</h3><p>Move any piece one square orthogonally. Pieces cannot move diagonally, jump, land on a friendly piece, or enter a rubble cell. Flags can move but cannot attack.</p><h3>Combat</h3><ul><li>Rock beats Scissors.</li><li>Scissors beats Paper.</li><li>Paper beats Rock.</li><li>When exactly one combatant is on high ground, its component gives it a 20% chance per tile to override the normal result, capped at 80%.</li><li>A failed high-ground roll falls through to normal RPS logic, including a draw for matching pieces.</li><li>Matching pieces become rubble, and their cell is forbidden for the rest of the game.</li><li>Any non-Flag piece captures the Flag immediately.</li><li>An army reduced to only its Flag loses immediately.</li></ul><h3>Hidden information</h3><p>Enemy pieces are hidden until combat reveals them. A revealed enemy that survives stays known for the rest of the game. Keep the screen covered during each pass-device handoff.</p></section></div>`;
+      return `<div class="modal-backdrop" data-action="close-rules"><section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" onclick="event.stopPropagation()"><div class="modal-heading"><div><p class="panel-label">How to play</p><h2 id="rules-title">Rules of the arena</h2></div><button class="close-button" data-action="close-rules" aria-label="Close rules">×</button></div><h3>Goal</h3><p>Capture the opponent's Flag. Player 1 moves first.</p><h3>Army</h3><ul><li>2 Rock, 2 Paper, 2 Scissors, and 1 Flag.</li><li>1 secret extra Rock, Paper, or Scissors, selected at random.</li></ul><h3>Terrain setup</h3><p>Players alternate for up to 4 terrain moves each. Each player’s remaining moves are shown in the header. A high-ground tile returned to plain is permanently plain and cannot be changed back by either player. Setup starts automatically after both players use all four moves, or you can click outside the board to finish early. Connected high-ground tiles form one public component and share seamless edges.</p><h3>Movement</h3><p>Move any piece one square orthogonally. Pieces cannot move diagonally, jump, land on a friendly piece, or enter a rubble cell. Flags can move but cannot attack.</p><h3>Combat</h3><ul><li>Rock beats Scissors.</li><li>Scissors beats Paper.</li><li>Paper beats Rock.</li><li>When exactly one combatant is on high ground, that combatant has a flat 50% chance to win the battle.</li><li>If the high-ground roll fails, normal RPS logic decides the result, including a draw for matching pieces.</li><li>Matching pieces become rubble, and their cell is forbidden for the rest of the game.</li><li>Any non-Flag piece captures the Flag immediately.</li><li>An army reduced to only its Flag loses immediately.</li></ul><h3>Hidden information</h3><p>Enemy pieces are hidden until combat reveals them. A revealed enemy that survives stays known for the rest of the game. Keep the screen covered during each pass-device handoff.</p></section></div>`;
     }
 
     function bindEvents() {

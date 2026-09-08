@@ -28,7 +28,7 @@ No build step or dependencies are required.
    - Rock defeats Scissors.
    - Scissors defeats Paper.
    - Paper defeats Rock.
-   - When exactly one combatant stands on high ground, its connected component gives it a 20% chance per tile to override the normal result, capped at 80%. A failed roll uses the normal rules.
+   - When exactly one combatant stands on high ground, that combatant has a flat 50% chance to win. If the roll fails, the normal rules decide the result.
    - Matching pieces become rubble, and that cell is forbidden for the rest of the game.
    - Any mobile piece captures the Flag.
    - A player with only their Flag remaining loses immediately.
@@ -40,7 +40,7 @@ Enemy pieces remain hidden until combat reveals them. A revealed enemy that surv
 
 - Click or tap a piece to select it.
 - Click or tap a highlighted square to move or attack.
-- During terrain setup, click any tile to toggle high ground; each player gets 4 terrain moves, and the header shows the active player’s remaining moves. Setup starts automatically after both players use all four moves, or you can click outside to finish early. Returning high ground to plain is permanent. Connected high-ground tiles share their edges and increase the combat bonus up to 80%.
+- During terrain setup, click any tile to toggle high ground; each player gets 4 terrain moves, and the header shows the active player’s remaining moves. Setup starts automatically after both players use all four moves, or you can click outside to finish early. Returning high ground to plain is permanent. Connected high-ground tiles share their edges, but high ground always gives a flat 50% combat chance.
 - Before the opening move, tap two friendly pieces in succession to swap them, or move a piece to an empty adjacent square to start the game.
 - Use **Rules** to review the rules and **New game** to restart.
 
