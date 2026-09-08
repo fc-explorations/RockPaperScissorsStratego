@@ -20,7 +20,7 @@ No build step or dependencies are required.
 ## How to play
 
 1. Choose **Pass & play** or **Play vs computer**.
-2. During terrain setup, players alternate tapping any tile to toggle it between plain and high ground. Click outside the board to finish; in computer mode, Player 2 chooses connected high ground automatically.
+2. During terrain setup, players alternate for a shared maximum of 4 terrain moves, tapping any tile to toggle it between plain and high ground. A high-ground tile returned to plain is permanently plain. The game starts setup automatically after the fourth move; click outside the board to finish early. In computer mode, Player 2 chooses connected high ground automatically.
 3. Both armies are placed randomly in their home rows, including a random extra Rock, Paper, or Scissors. Each Flag starts protected on the back line.
 4. Before the opening move, select two friendly pieces in succession to swap them. Select a piece and an empty adjacent square to make the opening move and start the game.
 5. Players alternate turns. Every piece moves one square horizontally or vertically. Flags can move but cannot attack.
@@ -40,7 +40,7 @@ Enemy pieces remain hidden until combat reveals them. A revealed enemy that surv
 
 - Click or tap a piece to select it.
 - Click or tap a highlighted square to move or attack.
-- During terrain setup, click any tile to toggle high ground; connected high-ground tiles share their edges and increase the combat bonus up to 80%.
+- During terrain setup, click any tile to toggle high ground; players share 4 terrain moves, and the header shows the remaining moves. Setup starts automatically after the fourth move, or you can click outside to finish early. Returning high ground to plain is permanent. Connected high-ground tiles share their edges and increase the combat bonus up to 80%.
 - Before the opening move, tap two friendly pieces in succession to swap them, or move a piece to an empty adjacent square to start the game.
 - Use **Rules** to review the rules and **New game** to restart.
 

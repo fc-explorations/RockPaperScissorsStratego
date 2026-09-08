@@ -196,9 +196,10 @@
     .rubble-art { position: relative; z-index: 1; width: 94%; height: 94%; object-fit: contain; filter: drop-shadow(0 8px 6px rgba(20,35,53,.3)); pointer-events: none; }
     .cell.high-ground { overflow: hidden; border: 0; border-radius: 0; }
     .cell.terrain-cell { cursor: pointer; }
+    .cell.terrain-cell.terrain-locked { cursor: not-allowed; }
     .cell.terrain-cell:hover { box-shadow: inset 0 0 0 3px rgba(216,157,53,.54); }
     .high-ground-art { display: none; }
-    .terrain-fill { position: absolute; z-index: 0; inset: 0; border-radius: var(--terrain-radius); background-image: url("assets/high-ground-1111.png"); background-position: var(--terrain-x) var(--terrain-y); background-repeat: no-repeat; background-size: 400% 600%; pointer-events: none; }
+    .terrain-fill { position: absolute; z-index: 0; inset: 0; overflow: hidden; border-radius: var(--terrain-radius); background-image: url("assets/high-ground-1111.png"); background-position: var(--terrain-x) var(--terrain-y); background-repeat: no-repeat; background-size: 400% 600%; box-shadow: inset 0 0 0 1px rgba(61,45,25,.58); pointer-events: none; }
     .terrain-fill .terrain-edge { position: absolute; z-index: 1; pointer-events: none; opacity: .9; }
     .terrain-fill .terrain-edge-n { top: 0; right: 0; left: 0; height: 19px; border-top: 2px solid rgba(61,45,25,.78); background: linear-gradient(to bottom, rgba(82,57,28,.72), rgba(139,125,49,.48) 38%, rgba(204,217,105,.3) 68%, transparent); box-shadow: 0 3px 4px rgba(31,42,20,.26); }
     .terrain-fill .terrain-edge-e { top: 0; right: 0; bottom: 0; width: 19px; border-right: 2px solid rgba(61,45,25,.78); background: linear-gradient(to left, rgba(82,57,28,.72), rgba(139,125,49,.48) 38%, rgba(204,217,105,.3) 68%, transparent); box-shadow: -3px 0 4px rgba(31,42,20,.26); }
@@ -442,6 +443,7 @@
 
     const BOARD_ROWS = 6;
     const BOARD_COLS = 4;
+    const MAX_TERRAIN_MOVES = 4;
     const TYPES = ["rock", "paper", "scissors", "flag"];
     const MOBILE_TYPES = ["rock", "paper", "scissors"];
     const TYPE_META = {
@@ -526,6 +528,8 @@
         aiPlayer: 2,
         terrainPlayer: 1,
         terrainLastCell: null,
+        terrainMoves: 0,
+        permanentPlainCells: [],
         setupPlayer: 1,
         currentPlayer: 1,
         selectedId: null,
@@ -559,6 +563,7 @@
     function pieceAt(row, col) { return state.pieces.find(piece => piece.alive && piece.row === row && piece.col === col); }
     function terrainKey(row, col) { return `${row}-${col}`; }
     function isHighGroundCell(row, col, cells = state.highGroundCells) { return cells.includes(terrainKey(row, col)); }
+    function isPermanentPlainCell(row, col) { return state.permanentPlainCells.includes(terrainKey(row, col)); }
     function toggleHighGroundCell(row, col, cells = state.highGroundCells) {
       const key = terrainKey(row, col);
       const index = cells.indexOf(key);
@@ -579,13 +584,15 @@
       state.phase = "terrain-setup";
       state.terrainPlayer = 1;
       state.terrainLastCell = null;
+      state.terrainMoves = 0;
+      state.permanentPlainCells = [];
       state.highGroundCells = [];
       state.message = "Player 1, choose a tile to toggle high ground. Each choice passes terrain setup to the other player. Click outside the board when you are ready for random formations.";
       render();
     }
 
     function finishTerrainSetup() {
-      if (state.phase !== "terrain-setup") return;
+      if (state.phase !== "terrain-setup" && state.phase !== "terrain-ai-thinking") return;
       randomizeArmies();
       state.phase = "setup";
       state.setupPlayer = 1;
@@ -593,6 +600,8 @@
       state.message = "Formations are random. Select two of your pieces to swap them, or select a piece and an empty adjacent square to start the game.";
       render();
     }
+
+    function terrainSetupComplete() { return state.terrainMoves >= MAX_TERRAIN_MOVES; }
 
     function randomizeArmy(owner) {
       const extraType = MOBILE_TYPES[Math.floor(Math.random() * MOBILE_TYPES.length)];
@@ -718,7 +727,6 @@
       const mask = terrainMask(row, col);
       const { tl, tr, br, bl } = terrainCornerRadii(mask);
       const exposedEdges = [[1, "n"], [2, "e"], [4, "s"], [8, "w"]]
-        .filter(([bit]) => !(mask & bit))
         .map(([, edge]) => `<span class="terrain-edge terrain-edge-${edge}" aria-hidden="true"></span>`)
         .join("");
       return `<span class="terrain-fill" style="--terrain-x:${(col / (BOARD_COLS - 1)) * 100}%;--terrain-y:${(row / (BOARD_ROWS - 1)) * 100}%;--terrain-radius:${tl}px ${tr}px ${br}px ${bl}px"><img class="high-ground-art" src="assets/${asset}" alt="" style="--terrain-rotation:${rotation}deg">${exposedEdges}</span>`;
@@ -730,12 +738,21 @@
       return cells;
     }
 
+    function terrainMovesRemaining() {
+      return Math.max(0, MAX_TERRAIN_MOVES - state.terrainMoves);
+    }
+
+    function terrainMoveLabel(count) {
+      return `${count} terrain move${count === 1 ? "" : "s"} left`;
+    }
+
     function chooseComputerTerrainCell() {
       let bestScore = -Infinity;
       let bestCells = [];
       for (let row = 0; row < BOARD_ROWS; row += 1) {
         for (let col = 0; col < BOARD_COLS; col += 1) {
-          if (terrainKey(row, col) === state.terrainLastCell) continue;
+          const key = terrainKey(row, col);
+          if (key === state.terrainLastCell || state.permanentPlainCells.includes(key)) continue;
           const cells = hypotheticalTerrain(row, col);
           const centerDistance = Math.abs(row - (BOARD_ROWS - 1) / 2) + Math.abs(col - (BOARD_COLS - 1) / 2);
           const centerScore = 1 - centerDistance / (BOARD_ROWS + BOARD_COLS);
@@ -754,30 +771,71 @@
     function runComputerTerrainTurn() {
       if (state.phase !== "terrain-ai-thinking" || state.terrainPlayer !== state.aiPlayer) return;
       terrainComputerTimer = null;
+      if (terrainMovesRemaining() === 0) {
+        state.phase = "terrain-setup";
+        state.terrainPlayer = 1;
+        state.message = "The terrain move limit is reached. Click outside the board to begin random formations.";
+        render();
+        return;
+      }
       const choice = chooseComputerTerrainCell();
       if (!choice) return;
+      const wasHighGround = isHighGroundCell(choice.row, choice.col);
       toggleHighGroundCell(choice.row, choice.col);
+      if (wasHighGround) state.permanentPlainCells.push(terrainKey(choice.row, choice.col));
       state.terrainLastCell = terrainKey(choice.row, choice.col);
+      state.terrainMoves += 1;
+      const action = wasHighGround ? "Tile returned to plain permanently" : "High ground added";
       state.terrainPlayer = 1;
+      if (terrainSetupComplete()) {
+        finishTerrainSetup();
+        return;
+      }
       state.phase = "terrain-setup";
-      state.message = "Player 1, choose the next terrain tile, or click outside the board to start random formations.";
+      state.message = terrainMovesRemaining() === 0
+        ? `${action}. The terrain move limit is reached. Click outside the board to begin random formations.`
+        : `${action}. Player 1, choose the next terrain tile (${terrainMoveLabel(terrainMovesRemaining())}), or click outside the board to start random formations.`;
       render();
     }
 
     function handleTerrainCell(row, col) {
       if (state.phase !== "terrain-setup") return;
+      if (terrainMovesRemaining() === 0) {
+        state.message = "The terrain move limit is reached. Click outside the board to begin random formations.";
+        render();
+        return;
+      }
+      if (isPermanentPlainCell(row, col)) {
+        state.message = "That tile was returned to plain permanently and cannot be changed again.";
+        render();
+        return;
+      }
+      const wasHighGround = isHighGroundCell(row, col);
       const added = toggleHighGroundCell(row, col);
+      if (wasHighGround && !added) state.permanentPlainCells.push(terrainKey(row, col));
       state.terrainLastCell = terrainKey(row, col);
+      state.terrainMoves += 1;
       const action = added ? "High ground added" : "Tile returned to plain";
-      state.terrainPlayer = opponent(state.terrainPlayer);
+      state.terrainPlayer = opponent(player);
+      if (terrainSetupComplete()) {
+        finishTerrainSetup();
+        return;
+      }
       if (state.gameMode === "computer" && state.terrainPlayer === state.aiPlayer) {
+        if (terrainMovesRemaining() === 0) {
+          state.message = `${action}. The terrain move limit is reached. Click outside the board to start random formations.`;
+          render();
+          return;
+        }
         state.phase = "terrain-ai-thinking";
-        state.message = `${action}. Player 2 is choosing the next terrain tile.`;
+        state.message = `${action}. Player 2 is choosing the next terrain tile (${terrainMoveLabel(terrainMovesRemaining())}).`;
         render();
         terrainComputerTimer = setTimeout(runComputerTerrainTurn, 700);
         return;
       }
-      state.message = `${action}. Player ${state.terrainPlayer}, choose a tile, or click outside the board to start random formations.`;
+      state.message = terrainMovesRemaining() === 0
+        ? `${action}. The terrain move limit is reached. Click outside the board to start random formations.`
+        : `${action}. Player ${state.terrainPlayer}, choose a tile (${terrainMoveLabel(terrainMovesRemaining())}), or click outside the board to start random formations.`;
       render();
     }
 
@@ -1188,9 +1246,11 @@
         const classes = ["cell"];
         const terrainPhase = state.phase === "terrain-setup" || state.phase === "terrain-ai-thinking";
         const highGround = isHighGroundCell(row, col);
+        const terrainLocked = isPermanentPlainCell(row, col);
         const rubble = isRubbleCell(row, col);
         if (terrainPhase) classes.push("terrain-cell");
         if (highGround) classes.push("high-ground");
+        if (terrainPhase && terrainLocked) classes.push("terrain-locked");
         if (rubble) classes.push("rubble");
         if (isHomeSquare(1, row)) classes.push("zone-p1");
         if (isHomeSquare(2, row)) classes.push("zone-p2");
@@ -1208,10 +1268,11 @@
           else classes.push("combat-loser");
         }
         if (piece && state.moveAnimation?.pieceId === piece.id && context === "board") classes.push("move-arrival-cell");
-        const terrainLabel = highGround ? "High-ground" : "Plain";
+        const terrainLabel = terrainLocked ? "Permanently plain" : highGround ? "High-ground" : "Plain";
         const label = rubble ? `Forbidden rubble cell at row ${row + 1}, column ${col + 1}` : piece ? `${hiddenPieceLabel(piece, viewer, context)} on ${terrainLabel.toLowerCase()} terrain at row ${row + 1}, column ${col + 1}` : `${terrainLabel} terrain tile at row ${row + 1}, column ${col + 1}`;
         const contents = `${terrainMarkup(row, col)}${rubble ? `<img class="rubble-art" src="assets/forbidden-rubble.png" alt="">` : piece ? renderPiece(piece, viewer, context) : ""}`;
-        html += `<button class="${classes.join(" ")}" data-row="${row}" data-col="${col}" aria-label="${label}">${contents}</button>`;
+        const lockedAttribute = terrainPhase && terrainLocked ? ` aria-disabled="true"` : "";
+        html += `<button class="${classes.join(" ")}"${lockedAttribute} data-row="${row}" data-col="${col}" aria-label="${label}">${contents}</button>`;
       }));
       return html;
     }
@@ -1235,8 +1296,8 @@
 
     function currentStatus() {
       if (state.phase === "setup") return "Random setup";
-      if (state.phase === "terrain-setup") return `Terrain setup · Player ${state.terrainPlayer}`;
-      if (state.phase === "terrain-ai-thinking") return "Terrain setup · Player 2 choosing";
+      if (state.phase === "terrain-setup") return `Terrain setup · Player ${state.terrainPlayer} · ${terrainMoveLabel(terrainMovesRemaining())}`;
+      if (state.phase === "terrain-ai-thinking") return `Terrain setup · Player 2 choosing · ${terrainMoveLabel(terrainMovesRemaining())}`;
       if (state.phase === "playing") return `Player ${state.currentPlayer} turn`;
       if (state.phase === "combat") return "Combat reveal";
       if (state.phase === "gameover") return "Game complete";
@@ -1250,8 +1311,8 @@
       const terrainPhase = state.phase === "terrain-setup" || state.phase === "terrain-ai-thinking";
       const phaseLine = terrainPhase
         ? state.phase === "terrain-ai-thinking"
-          ? "Terrain setup · Player 2 is choosing high ground"
-          : `Terrain setup · Player ${state.terrainPlayer}: tap a tile to toggle high ground · click outside the board to begin random formations`
+          ? `Terrain setup · Player 2 is choosing high ground · ${terrainMoveLabel(terrainMovesRemaining())}`
+          : `Terrain setup · Player ${state.terrainPlayer}: tap a tile to toggle high ground · ${terrainMoveLabel(terrainMovesRemaining())} · click outside to finish early`
         : currentStatus();
       app.innerHTML = `
         <header class="topbar">
@@ -1315,7 +1376,7 @@
     }
 
     function renderRulesModal() {
-      return `<div class="modal-backdrop" data-action="close-rules"><section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" onclick="event.stopPropagation()"><div class="modal-heading"><div><p class="panel-label">How to play</p><h2 id="rules-title">Rules of the arena</h2></div><button class="close-button" data-action="close-rules" aria-label="Close rules">×</button></div><h3>Goal</h3><p>Capture the opponent's Flag. Player 1 moves first.</p><h3>Army</h3><ul><li>2 Rock, 2 Paper, 2 Scissors, and 1 Flag.</li><li>1 secret extra Rock, Paper, or Scissors, selected at random.</li></ul><h3>Terrain setup</h3><p>Players alternate toggling any board tile between plain and high ground. Each toggle uses the current terrain turn. Click outside the board when ready to begin random army placement. Connected high-ground tiles form one public component and share seamless edges.</p><h3>Movement</h3><p>Move any piece one square orthogonally. Pieces cannot move diagonally, jump, land on a friendly piece, or enter a rubble cell. Flags can move but cannot attack.</p><h3>Combat</h3><ul><li>Rock beats Scissors.</li><li>Scissors beats Paper.</li><li>Paper beats Rock.</li><li>When exactly one combatant is on high ground, its component gives it a 20% chance per tile to override the normal result, capped at 80%.</li><li>A failed high-ground roll falls through to normal RPS logic, including a draw for matching pieces.</li><li>Matching pieces become rubble, and their cell is forbidden for the rest of the game.</li><li>Any non-Flag piece captures the Flag immediately.</li><li>An army reduced to only its Flag loses immediately.</li></ul><h3>Hidden information</h3><p>Enemy pieces are hidden until combat reveals them. A revealed enemy that survives stays known for the rest of the game. Keep the screen covered during each pass-device handoff.</p></section></div>`;
+      return `<div class="modal-backdrop" data-action="close-rules"><section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" onclick="event.stopPropagation()"><div class="modal-heading"><div><p class="panel-label">How to play</p><h2 id="rules-title">Rules of the arena</h2></div><button class="close-button" data-action="close-rules" aria-label="Close rules">×</button></div><h3>Goal</h3><p>Capture the opponent's Flag. Player 1 moves first.</p><h3>Army</h3><ul><li>2 Rock, 2 Paper, 2 Scissors, and 1 Flag.</li><li>1 secret extra Rock, Paper, or Scissors, selected at random.</li></ul><h3>Terrain setup</h3><p>Players alternate for a shared maximum of 4 terrain moves. Each move uses the current terrain turn, and the header shows the remaining moves. A high-ground tile returned to plain is permanently plain and cannot be changed back by either player. Setup starts automatically after the fourth move, or you can click outside the board to finish early. Connected high-ground tiles form one public component and share seamless edges.</p><h3>Movement</h3><p>Move any piece one square orthogonally. Pieces cannot move diagonally, jump, land on a friendly piece, or enter a rubble cell. Flags can move but cannot attack.</p><h3>Combat</h3><ul><li>Rock beats Scissors.</li><li>Scissors beats Paper.</li><li>Paper beats Rock.</li><li>When exactly one combatant is on high ground, its component gives it a 20% chance per tile to override the normal result, capped at 80%.</li><li>A failed high-ground roll falls through to normal RPS logic, including a draw for matching pieces.</li><li>Matching pieces become rubble, and their cell is forbidden for the rest of the game.</li><li>Any non-Flag piece captures the Flag immediately.</li><li>An army reduced to only its Flag loses immediately.</li></ul><h3>Hidden information</h3><p>Enemy pieces are hidden until combat reveals them. A revealed enemy that survives stays known for the rest of the game. Keep the screen covered during each pass-device handoff.</p></section></div>`;
     }
 
     function bindEvents() {
